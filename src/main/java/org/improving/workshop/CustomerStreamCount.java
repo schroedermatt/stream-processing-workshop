@@ -4,15 +4,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Produced;
 import org.springframework.kafka.support.serializer.JsonSerde;
-
-import java.util.Properties;
 
 public class CustomerStreamCount {
     static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(CustomerStreamCount.class);
@@ -26,19 +23,13 @@ public class CustomerStreamCount {
      * The Streams application as a whole can be launched like any normal Java application that has a `main()` method.
      */
     public static void main(final String[] args) {
-        // todo - update bootstrapServers
-        final String bootstrapServers = args.length > 0 ? args[0] : "pkc-5d78q.us-east-2.aws.confluent.cloud:9092";
-
-        // Configure the Streams application.
-        final Properties streamsConfiguration = getStreamsConfiguration(bootstrapServers);
-
-        // Define the processing topology of the Streams application.
         final StreamsBuilder builder = new StreamsBuilder();
 
+        // define the processing topology of the Streams application.
         buildCustomerStreamCounter(builder);
 
         Topology topology = builder.build();
-        final KafkaStreams streams = new KafkaStreams(topology, streamsConfiguration);
+        final KafkaStreams streams = new KafkaStreams(topology, StreamsProperties.build());
         logger.info("{}", topology.describe());
 
         // Always (and unconditionally) clean local state prior to starting the processing topology.
@@ -58,43 +49,6 @@ public class CustomerStreamCount {
 
         // Add shutdown hook to respond to SIGTERM and gracefully close the Streams application.
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
-    }
-
-    /**
-     * Configure the Streams application.
-     *
-     * Various Kafka Streams related settings are defined here such as the location of the target Kafka cluster to use.
-     * Additionally, you could also define Kafka Producer and Kafka Consumer settings when needed.
-     *
-     * @param bootstrapServers Kafka cluster address
-     * @return Properties getStreamsConfiguration
-     */
-    static Properties getStreamsConfiguration(final String bootstrapServers) {
-        final Properties streamsConfiguration = new Properties();
-        // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
-        // against which the application is run.
-        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-workshop-example");
-        streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "kafka-workshop-example-client");
-        // Where to find Kafka broker(s).
-        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-
-        // How to connect securely to the broker(s)
-        streamsConfiguration.put(StreamsConfig.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
-        // todo - add your username,password
-        streamsConfiguration.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='***' password='***';");
-        streamsConfiguration.put("sasl.mechanism", "PLAIN");
-
-        // Specify default (de)serializers for record keys and for record values.
-        streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-        streamsConfiguration.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, "org.springframework.kafka.support.serializer.JsonSerde");
-        // Records should be flushed every 10 seconds. This is less than the default
-        // in order to keep this example interactive.
-        streamsConfiguration.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 10 * 1000);
-        // For illustrative purposes we disable record caches.
-        streamsConfiguration.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, 0);
-        // Use a temporary directory for storing state, which will be automatically removed after the test.
-        // streamsConfiguration.put(StreamsConfig.STATE_DIR_CONFIG, TestUtils.tempDirectory().getAbsolutePath());
-        return streamsConfiguration;
     }
 
     static void buildCustomerStreamCounter(final StreamsBuilder builder) {

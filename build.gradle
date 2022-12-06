@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+}
+
+group 'org.improving.workshop'
+version '1.0-SNAPSHOT'
+sourceCompatibility = '17'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://packages.confluent.io/maven"
+    }
+}
+
+dependencies {
+    implementation 'org.apache.kafka:kafka-clients:7.3.0-ce'
+    implementation 'org.apache.kafka:kafka-streams:7.3.0-ce'
+
+    // included for the Serdes
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
+    implementation 'org.springframework.kafka:spring-kafka:3.0.0'
+
+    implementation 'org.slf4j:slf4j-api:2.0.5'
+    implementation 'org.slf4j:slf4j-simple:2.0.5'
+
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.24'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+    testImplementation 'org.apache.kafka:kafka-streams-test-utils:7.3.0-ce'
+}
+
+test {
+    useJUnitPlatform()
+}

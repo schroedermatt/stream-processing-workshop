@@ -14,11 +14,11 @@ public class StreamsProperties {
         streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-workshop-example-2");
         streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "kafka-workshop-example-client");
         // Where to find Kafka broker(s).
-        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "pkc-5d78q.us-east-2.aws.confluent.cloud:9092");
+        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "pkc-ymrq7.us-east-2.aws.confluent.cloud:9092");
 
         // How to connect securely to the broker(s)
         streamsConfiguration.put(StreamsConfig.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
-        streamsConfiguration.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='MZ4PZ5TT5PQMWEYW' password='Sxg+3NcUsHndFXCLuemgiW/rhSMSKCUnxT+TDSfmvYsKrD6u5IIwui4uXPmHix8B';");
+        streamsConfiguration.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='**' password='**';");
         streamsConfiguration.put("sasl.mechanism", "PLAIN");
 
         // Specify default (de)serializers for record keys and for record values.

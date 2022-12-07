@@ -65,8 +65,9 @@ public class CustomerStreamCount {
         // Write the `KTable<String, Long>` to the output topic.
         streamCounts
                 .toStream()
-                .peek((customerId, count) -> logger.info("Customer '{}' has {} streams", customerId, count))
-                .to(outputTopic, Produced.with(Serdes.String(), Serdes.Long()));
+                .peek((customerId, count) -> logger.info("Customer '{}' has {} streams", customerId, count));
+                // NOTE: when using ccloud, the topic must exist or 'auto.create.topics.enable' set to true (dedicated cluster required)
+                // .to(outputTopic, Produced.with(Serdes.String(), Serdes.Long()));
     }
 
 }

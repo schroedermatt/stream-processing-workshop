@@ -2,14 +2,9 @@ package org.improving.workshop.stream;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Produced;
-import org.improving.workshop.Streams;
 import org.improving.workshop.domain.music.stream.Stream;
 import org.springframework.kafka.support.serializer.JsonSerde;
 

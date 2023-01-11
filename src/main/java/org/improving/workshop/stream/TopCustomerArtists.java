@@ -22,7 +22,7 @@ import static org.improving.workshop.Streams.startStreams;
 @Slf4j
 public class TopCustomerArtists {
     public static final JsonSerde<Stream> CUST_STREAM_JSON_SERDE = new JsonSerde<>(Stream.class);
-    public static final JsonSerde<CounterMap> COUNTER_MAP_JSON_SERDE = new JsonSerde<>(CounterMap.class);
+    public static final JsonSerde<SortedCounterMap> COUNTER_MAP_JSON_SERDE = new JsonSerde<>(SortedCounterMap.class);
     public static final JsonSerde<LinkedHashMap<String, Long>> LINKED_HASH_MAP_JSON_SERDE = new JsonSerde<>(LinkedHashMap.class);
 
     public static final String INPUT_TOPIC = "data-demo-streams";
@@ -53,7 +53,7 @@ public class TopCustomerArtists {
             // keep track of each customer's artist stream counts in a ktable
             .aggregate(
                     // initializer
-                    CounterMap::new,
+                    SortedCounterMap::new,
 
                     // aggregator
                     (customerId, stream, customerArtistStreamCounts) -> {
@@ -63,7 +63,7 @@ public class TopCustomerArtists {
 
                     // ktable (materialized) configuration
                     Materialized
-                            .<String, CounterMap>as(persistentKeyValueStore("customer-artist-stream-counts"))
+                            .<String, SortedCounterMap>as(persistentKeyValueStore("customer-artist-stream-counts"))
                             .withKeySerde(Serdes.String())
                             .withValueSerde(COUNTER_MAP_JSON_SERDE)
             )
@@ -71,7 +71,7 @@ public class TopCustomerArtists {
             // turn it back into a stream so that it can be produced to the OUTPUT_TOPIC
             .toStream()
             // trim to only the top 3
-            .mapValues(counterMap -> counterMap.top(3))
+            .mapValues(sortedCounterMap -> sortedCounterMap.top(3))
             .peek((key, counterMap) -> log.info("Customer {}'s Top 3 Streamed Artists: {}", key, counterMap))
             // NOTE: when using ccloud, the topic must exist or 'auto.create.topics.enable' set to true (dedicated cluster required)
             .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), LINKED_HASH_MAP_JSON_SERDE));
@@ -79,15 +79,15 @@ public class TopCustomerArtists {
 
     @Data
     @AllArgsConstructor
-    public static class CounterMap {
+    public static class SortedCounterMap {
         private int maxSize;
         private LinkedHashMap<String, Long> map;
 
-        public CounterMap() {
+        public SortedCounterMap() {
             this(1000);
         }
 
-        public CounterMap(int maxSize) {
+        public SortedCounterMap(int maxSize) {
             this.maxSize = maxSize;
             this.map = new LinkedHashMap<>();
         }

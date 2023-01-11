@@ -1,13 +1,19 @@
 package org.improving.workshop;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 
 import java.util.Properties;
 
-public class StreamsProperties {
+@Slf4j
+public class Streams {
+    private static final boolean logTopologyDescription = true;
 
-    public static Properties build() {
+    public static Properties buildProperties() {
         final Properties streamsConfiguration = new Properties();
         // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
         // against which the application is run.
@@ -32,5 +38,34 @@ public class StreamsProperties {
         // Use a temporary directory for storing state, which will be automatically removed after the test.
         // streamsConfiguration.put(StreamsConfig.STATE_DIR_CONFIG, TestUtils.tempDirectory().getAbsolutePath());
         return streamsConfiguration;
+    }
+
+    public static void startStreams(StreamsBuilder builder) {
+        Topology topology = builder.build();
+
+        final KafkaStreams streams = new KafkaStreams(topology, Streams.buildProperties());
+
+        if (logTopologyDescription) {
+            // Use the output of this log + https://zz85.github.io/kafka-streams-viz/ to vizualize your topology
+            log.info("{}", topology.describe());
+        }
+
+        // Always (and unconditionally) clean local state prior to starting the processing topology.
+        // We opt for this unconditional call here because this will make it easier for you to play around with the example
+        // when resetting the application for doing a re-run (via the Application Reset Tool,
+        // https://docs.confluent.io/platform/current/streams/developer-guide/app-reset-tool.html).
+        //
+        // The drawback of cleaning up local state prior is that your app must rebuilt its local state from scratch, which
+        // will take time and will require reading all the state-relevant data from the Kafka cluster over the network.
+        // Thus in a production scenario you typically do not want to clean up always as we do here but rather only when it
+        // is truly needed, i.e., only under certain conditions (e.g., the presence of a command line flag for your app).
+        // See `ApplicationResetExample.java` for a production-like example.
+        streams.cleanUp();
+
+        // Now run the processing topology via `start()` to begin processing its input data.
+        streams.start();
+
+        // Add shutdown hook to respond to SIGTERM and gracefully close the Streams application.
+        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
 }

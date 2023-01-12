@@ -30,13 +30,13 @@ class TopCustomerArtistsSpec extends Specification {
         inputTopic = driver.createInputTopic(
                 TopCustomerArtists.INPUT_TOPIC,
                 Serdes.String().serializer(),
-                TopCustomerArtists.CUST_STREAM_JSON_SERDE.serializer()
+                Streams.CUSTOMER_STREAM_JSON_SERDE.serializer()
         )
 
         outputTopic = driver.createOutputTopic(
                 TopCustomerArtists.OUTPUT_TOPIC,
                 Serdes.String().deserializer(),
-                TopCustomerArtists.LINKED_HASH_MAP_JSON_SERDE.deserializer()
+                Streams.LINKED_HASH_MAP_JSON_SERDE.deserializer()
         )
 
         streamFaker = new StreamFaker(new Faker())

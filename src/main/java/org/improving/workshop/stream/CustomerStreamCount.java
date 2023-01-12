@@ -5,6 +5,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Produced;
+import org.improving.workshop.Streams;
 import org.improving.workshop.domain.music.stream.Stream;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
@@ -12,7 +13,6 @@ import static org.improving.workshop.Streams.startStreams;
 
 @Slf4j
 public class CustomerStreamCount {
-    public static final JsonSerde<Stream> CUST_STREAM_JSON_SERDE = new JsonSerde<>(Stream.class);
     public static final String INPUT_TOPIC = "data-demo-streams";
     public static final String OUTPUT_TOPIC = "kafka-workshop-customer-stream-count";
 
@@ -32,7 +32,7 @@ public class CustomerStreamCount {
     static void configureTopology(final StreamsBuilder builder) {
         builder
             // consume events from INPUT_TOPIC
-            .stream(INPUT_TOPIC, Consumed.with(Serdes.String(), CUST_STREAM_JSON_SERDE))
+            .stream(INPUT_TOPIC, Consumed.with(Serdes.String(), Streams.CUSTOMER_STREAM_JSON_SERDE))
             .peek((streamId, stream) -> log.info("Stream Received: {}", stream))
 
             // rekey so that the groupBy is by customerid and not streamid

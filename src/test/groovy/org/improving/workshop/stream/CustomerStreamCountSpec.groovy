@@ -30,7 +30,7 @@ class CustomerStreamCountSpec extends Specification {
         inputTopic = driver.createInputTopic(
                 CustomerStreamCount.INPUT_TOPIC,
                 Serdes.String().serializer(),
-                CustomerStreamCount.CUST_STREAM_JSON_SERDE.serializer()
+                Streams.CUSTOMER_STREAM_JSON_SERDE.serializer()
         )
 
         outputTopic = driver.createOutputTopic(

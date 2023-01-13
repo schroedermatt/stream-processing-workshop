@@ -7,10 +7,10 @@ import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TestOutputTopic
 import org.apache.kafka.streams.TopologyTestDriver
 import org.improving.workshop.Streams
-import org.improving.workshop.domain.music.event.Event
-import org.improving.workshop.domain.music.event.EventFaker
-import org.improving.workshop.domain.music.ticket.Ticket
-import org.improving.workshop.domain.music.ticket.TicketFaker
+import org.msse.demo.mockdata.music.event.Event
+import org.msse.demo.mockdata.music.event.EventFaker
+import org.msse.demo.mockdata.music.ticket.Ticket
+import org.msse.demo.mockdata.music.ticket.TicketFaker
 import spock.lang.Specification
 
 class PurchaseEventTicketSpec extends Specification {
@@ -63,7 +63,8 @@ class PurchaseEventTicketSpec extends Specification {
     def "purchase event tickets"() {
         given: 'a highly exclusive event (5 people allowed)'
         String eventId = "exciting-event-123"
-        eventInputTopic.pipeInput(eventId, eventFaker.generate("artist-1", "venue-2", 5))
+
+        eventInputTopic.pipeInput(eventId, new Event(eventId, "artist-1", "venue-1", 5, "today"))
 
         and: 'a purchased ticket for the event'
         ticketInputTopic.pipeInput(ticketFaker.generate("customer-1", eventId))

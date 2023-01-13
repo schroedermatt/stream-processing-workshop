@@ -9,8 +9,8 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
 import org.improving.workshop.Streams;
-import org.improving.workshop.domain.music.event.Event;
-import org.improving.workshop.domain.music.ticket.Ticket;
+import org.msse.demo.mockdata.music.event.Event;
+import org.msse.demo.mockdata.music.ticket.Ticket;
 
 import java.util.UUID;
 

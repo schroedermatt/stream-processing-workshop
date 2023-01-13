@@ -7,8 +7,8 @@ import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TestOutputTopic
 import org.apache.kafka.streams.TopologyTestDriver
 import org.improving.workshop.Streams
-import org.improving.workshop.domain.music.stream.Stream
-import org.improving.workshop.domain.music.stream.StreamFaker
+import org.msse.demo.mockdata.music.stream.Stream
+import org.msse.demo.mockdata.music.stream.StreamFaker
 import spock.lang.Specification
 
 class TopCustomerArtistsSpec extends Specification {

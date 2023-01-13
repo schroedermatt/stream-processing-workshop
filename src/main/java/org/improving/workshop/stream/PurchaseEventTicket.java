@@ -59,9 +59,17 @@ public class PurchaseEventTicket {
 
             // join the incoming ticket to the event that it is for
             .leftJoin(
-                eventsTable,
-                EventTicket::new
+                    eventsTable,
+                    (eventId, ticket, event) -> {
+                        if (event == null) {
+                            log.warn("Event '{}' not found!", eventId);
+                            return null;
+                        }
+
+                        return new EventTicket(ticket, event);
+                    }
             )
+            .filter((eventId, eventTicket) -> eventTicket != null)
             .groupByKey()
             .aggregate(
                     // initializer (doesn't have key, value supplied so the actual initialization is in the aggregator)

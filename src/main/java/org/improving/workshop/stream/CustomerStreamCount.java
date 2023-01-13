@@ -6,8 +6,6 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Produced;
 import org.improving.workshop.Streams;
-import org.improving.workshop.domain.music.stream.Stream;
-import org.springframework.kafka.support.serializer.JsonSerde;
 
 import static org.improving.workshop.Streams.startStreams;
 

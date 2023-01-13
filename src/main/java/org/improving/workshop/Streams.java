@@ -6,7 +6,11 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
+import org.improving.workshop.domain.customer.address.Address;
+import org.improving.workshop.domain.customer.email.Email;
+import org.improving.workshop.domain.customer.phone.Phone;
 import org.improving.workshop.domain.customer.profile.Customer;
+import org.improving.workshop.domain.music.artist.Artist;
 import org.improving.workshop.domain.music.event.Event;
 import org.improving.workshop.domain.music.stream.Stream;
 import org.improving.workshop.domain.music.ticket.Ticket;
@@ -20,14 +24,21 @@ import java.util.Properties;
 
 @Slf4j
 public class Streams {
+    // domain serdes
+    public static final JsonSerde<Address> ADDRESS_JSON_SERDE = new JsonSerde<>(Address.class);
+    public static final JsonSerde<Artist> ARTIST_JSON_SERDE = new JsonSerde<>(Artist.class);
     public static final JsonSerde<Customer> CUSTOMER_JSON_SERDE = new JsonSerde<>(Customer.class);
-    public static final JsonSerde<Venue> VENUE_JSON_SERDE = new JsonSerde<>(Venue.class);
+    public static final JsonSerde<Email> EMAIL_JSON_SERDE = new JsonSerde<>(Email.class);
     public static final JsonSerde<Event> EVENT_JSON_SERDE = new JsonSerde<>(Event.class);
-    public static final JsonSerde<Ticket> TICKET_JSON_SERDE = new JsonSerde<>(Ticket.class);
+    public static final JsonSerde<Phone> PHONE_JSON_SERDE = new JsonSerde<>(Phone.class);
     public static final JsonSerde<Stream> CUSTOMER_STREAM_JSON_SERDE = new JsonSerde<>(Stream.class);
+    public static final JsonSerde<Ticket> TICKET_JSON_SERDE = new JsonSerde<>(Ticket.class);
+    public static final JsonSerde<Venue> VENUE_JSON_SERDE = new JsonSerde<>(Venue.class);
+
+    // stream serdes
+    public static final JsonSerde<TopCustomerArtists.SortedCounterMap> COUNTER_MAP_JSON_SERDE = new JsonSerde<>(TopCustomerArtists.SortedCounterMap.class);
     public static final JsonSerde<PurchaseEventTicket.EventStatus> REMAINING_TICKETS_JSON_SERDE = new JsonSerde<>(PurchaseEventTicket.EventStatus.class);
     public static final JsonSerde<PurchaseEventTicket.EventTicketConfirmation> TICKET_CONFIRMATION_JSON_SERDE = new JsonSerde<>(PurchaseEventTicket.EventTicketConfirmation.class);
-    public static final JsonSerde<TopCustomerArtists.SortedCounterMap> COUNTER_MAP_JSON_SERDE = new JsonSerde<>(TopCustomerArtists.SortedCounterMap.class);
     public static final JsonSerde<LinkedHashMap<String, Long>> LINKED_HASH_MAP_JSON_SERDE = new JsonSerde<>(LinkedHashMap.class);
 
     private static final boolean logTopologyDescription = true;

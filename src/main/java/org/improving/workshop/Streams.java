@@ -6,8 +6,6 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
-import org.improving.workshop.stream.PurchaseEventTicket;
-import org.improving.workshop.stream.TopCustomerArtists;
 import org.msse.demo.mockdata.customer.address.Address;
 import org.msse.demo.mockdata.customer.email.Email;
 import org.msse.demo.mockdata.customer.phone.Phone;
@@ -19,43 +17,61 @@ import org.msse.demo.mockdata.music.ticket.Ticket;
 import org.msse.demo.mockdata.music.venue.Venue;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
-import java.util.LinkedHashMap;
 import java.util.Properties;
+import java.util.UUID;
 
 @Slf4j
 public class Streams {
-    // domain serdes
-    public static final JsonSerde<Address> ADDRESS_JSON_SERDE = new JsonSerde<>(Address.class);
-    public static final JsonSerde<Artist> ARTIST_JSON_SERDE = new JsonSerde<>(Artist.class);
-    public static final JsonSerde<Customer> CUSTOMER_JSON_SERDE = new JsonSerde<>(Customer.class);
-    public static final JsonSerde<Email> EMAIL_JSON_SERDE = new JsonSerde<>(Email.class);
-    public static final JsonSerde<Event> EVENT_JSON_SERDE = new JsonSerde<>(Event.class);
-    public static final JsonSerde<Phone> PHONE_JSON_SERDE = new JsonSerde<>(Phone.class);
-    public static final JsonSerde<Stream> CUSTOMER_STREAM_JSON_SERDE = new JsonSerde<>(Stream.class);
-    public static final JsonSerde<Ticket> TICKET_JSON_SERDE = new JsonSerde<>(Ticket.class);
-    public static final JsonSerde<Venue> VENUE_JSON_SERDE = new JsonSerde<>(Venue.class);
+    /////////////////////////////////////
+    // data demo input topics & serdes //
+    /////////////////////////////////////
 
-    // stream serdes
-    public static final JsonSerde<TopCustomerArtists.SortedCounterMap> COUNTER_MAP_JSON_SERDE = new JsonSerde<>(TopCustomerArtists.SortedCounterMap.class);
-    public static final JsonSerde<PurchaseEventTicket.EventStatus> REMAINING_TICKETS_JSON_SERDE = new JsonSerde<>(PurchaseEventTicket.EventStatus.class);
-    public static final JsonSerde<PurchaseEventTicket.EventTicketConfirmation> TICKET_CONFIRMATION_JSON_SERDE = new JsonSerde<>(PurchaseEventTicket.EventTicketConfirmation.class);
-    public static final JsonSerde<LinkedHashMap<String, Long>> LINKED_HASH_MAP_JSON_SERDE = new JsonSerde<>(LinkedHashMap.class);
+    // addresses
+    public static final String TOPIC_DATA_DEMO_ADDRESSES = "data-demo-addresses";
+    public static final JsonSerde<Address> SERDE_ADDRESS_JSON = new JsonSerde<>(Address.class);
+    // artists
+    public static final String TOPIC_DATA_DEMO_ARTISTS = "data-demo-artists";
+    public static final JsonSerde<Artist> SERDE_ARTIST_JSON = new JsonSerde<>(Artist.class);
+    // customers
+    public static final String TOPIC_DATA_DEMO_CUSTOMERS = "data-demo-customers";
+    public static final JsonSerde<Customer> SERDE_CUSTOMER_JSON = new JsonSerde<>(Customer.class);
+    // emails
+    public static final String TOPIC_DATA_DEMO_EMAILS = "data-demo-emails";
+    public static final JsonSerde<Email> SERDE_EMAIL_JSON = new JsonSerde<>(Email.class);
+    // events
+    public static final String TOPIC_DATA_DEMO_EVENTS = "data-demo-events";
+    public static final JsonSerde<Event> SERDE_EVENT_JSON = new JsonSerde<>(Event.class);
+    // phones
+    public static final String TOPIC_DATA_DEMO_PHONES = "data-demo-phones";
+    public static final JsonSerde<Phone> SERDE_PHONE_JSON = new JsonSerde<>(Phone.class);
+    // streams
+    public static final String TOPIC_DATA_DEMO_STREAMS = "data-demo-streams";
+    public static final JsonSerde<Stream> SERDE_STREAM_JSON = new JsonSerde<>(Stream.class);
+    // tickets
+    public static final String TOPIC_DATA_DEMO_TICKETS = "data-demo-tickets";
+    public static final JsonSerde<Ticket> SERDE_TICKET_JSON = new JsonSerde<>(Ticket.class);
+    // venues
+    public static final String TOPIC_DATA_DEMO_VENUES = "data-demo-venues";
+    public static final JsonSerde<Venue> SERDE_VENUE_JSON = new JsonSerde<>(Venue.class);
 
-    private static final boolean logTopologyDescription = true;
-
+    /**
+     * Builds the base properties needed to start the Stream
+     * @return Properties
+     */
     public static Properties buildProperties() {
         final Properties streamsConfiguration = new Properties();
         // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
         // against which the application is run.
-        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-workshop-example-3");
-        streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "kafka-workshop-example-client");
+        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-workshop-example-" + UUID.randomUUID());
+        streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "kafka-workshop-client");
+
         // Where to find Kafka broker(s).
-        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:19092,localhost:29092,localhost:39092");
-//        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "pkc-ymrq7.us-east-2.aws.confluent.cloud:9092");
+        // streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:19092,localhost:29092,localhost:39092");
+//        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "pkc-ywvz6.us-east-2.aws.confluent.cloud:9092");
 
         // How to connect securely to the broker(s)
 //        streamsConfiguration.put(StreamsConfig.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
-//        streamsConfiguration.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='**' password='**';");
+//        streamsConfiguration.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='*' password='*';");
 //        streamsConfiguration.put("sasl.mechanism", "PLAIN");
 
         // Specify default (de)serializers for record keys and for record values.
@@ -71,15 +87,17 @@ public class Streams {
         return streamsConfiguration;
     }
 
+    /**
+     * Starts the provided StreamsBuilder instance (which contains the topology).
+     * @param builder StreamsBuilder preconfigured with the Topology to execute
+     */
     public static void startStreams(StreamsBuilder builder) {
         Topology topology = builder.build();
 
         final KafkaStreams streams = new KafkaStreams(topology, Streams.buildProperties());
 
-        if (logTopologyDescription) {
-            // Use the output of this log + https://zz85.github.io/kafka-streams-viz/ to vizualize your topology
-            log.info("{}", topology.describe());
-        }
+        // Use the output of this log + https://zz85.github.io/kafka-streams-viz/ to vizualize your topology
+        log.info("{}", topology.describe());
 
         // Always (and unconditionally) clean local state prior to starting the processing topology.
         // We opt for this unconditional call here because this will make it easier for you to play around with the example

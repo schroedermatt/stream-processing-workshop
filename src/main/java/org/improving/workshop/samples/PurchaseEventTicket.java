@@ -1,4 +1,4 @@
-package org.improving.workshop.stream;
+package org.improving.workshop.samples;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +11,7 @@ import org.apache.kafka.streams.kstream.*;
 import org.improving.workshop.Streams;
 import org.msse.demo.mockdata.music.event.Event;
 import org.msse.demo.mockdata.music.ticket.Ticket;
+import org.springframework.kafka.support.serializer.JsonSerde;
 
 import java.util.UUID;
 
@@ -19,9 +20,11 @@ import static org.improving.workshop.Streams.*;
 
 @Slf4j
 public class PurchaseEventTicket {
-    public static final String INPUT_TOPIC_EVENTS = "data-demo-events";
-    public static final String INPUT_TOPIC_TICKETS = "data-demo-tickets";
+    // MUST BE PREFIXED WITH "kafka-workshop-"
     public static final String OUTPUT_TOPIC = "kafka-workshop-ticket-response";
+
+    public static final JsonSerde<EventStatus> REMAINING_TICKETS_JSON_SERDE = new JsonSerde<>(EventStatus.class);
+    public static final JsonSerde<PurchaseEventTicket.EventTicketConfirmation> TICKET_CONFIRMATION_JSON_SERDE = new JsonSerde<>(EventTicketConfirmation.class);
 
     /**
      * The Streams application as a whole can be launched like any normal Java application that has a `main()` method.
@@ -40,37 +43,28 @@ public class PurchaseEventTicket {
         // store events in a table so that the ticket can reference them to find capacity
         KTable<String, Event> eventsTable = builder
                 .table(
-                        INPUT_TOPIC_EVENTS,
+                        TOPIC_DATA_DEMO_EVENTS,
                         Materialized
                             .<String, Event>as(persistentKeyValueStore("events"))
                             .withKeySerde(Serdes.String())
-                            .withValueSerde(Streams.EVENT_JSON_SERDE)
+                            .withValueSerde(Streams.SERDE_EVENT_JSON)
                 );
 
         // capture the backside of the table to log a confirmation that the Event was received
         eventsTable.toStream().peek((key, event) -> log.info("Event '{}' registered for artist '{}' at venue '{}' with a capacity of {}.", key, event.artistid(), event.venueid(), event.capacity()));
 
         builder
-            .stream(INPUT_TOPIC_TICKETS, Consumed.with(Serdes.String(), TICKET_JSON_SERDE))
+            .stream(TOPIC_DATA_DEMO_TICKETS, Consumed.with(Serdes.String(), SERDE_TICKET_JSON))
             .peek((ticketId, ticketRequest) -> log.info("Ticket Requested: {}", ticketRequest))
 
             // rekey by eventid so we can join against the event ktable
             .selectKey((ticketId, ticketRequest) -> ticketRequest.eventid(), Named.as("rekey-by-eventid"))
 
             // join the incoming ticket to the event that it is for
-            .leftJoin(
+            .join(
                     eventsTable,
-                    (eventId, ticket, event) -> {
-                        if (event == null) {
-                            log.warn("Event '{}' not found!", eventId);
-                            return null;
-                        }
-
-                        return new EventTicket(ticket, event);
-                    }
+                    (eventId, ticket, event) -> new EventTicket(ticket, event)
             )
-            // filter out ticket requests for events that do not exist
-            .filter((eventId, eventTicket) -> eventTicket != null)
             .groupByKey()
             .aggregate(
                     // initializer (doesn't have key, value supplied so the actual initialization is in the aggregator)

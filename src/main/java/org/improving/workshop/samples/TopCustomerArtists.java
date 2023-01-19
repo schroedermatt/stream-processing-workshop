@@ -1,4 +1,4 @@
-package org.improving.workshop.stream;
+package org.improving.workshop.samples;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,6 +8,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
+import org.springframework.kafka.support.serializer.JsonSerde;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,8 +20,11 @@ import static org.improving.workshop.Streams.*;
 
 @Slf4j
 public class TopCustomerArtists {
-    public static final String INPUT_TOPIC = "data-demo-streams";
+    // MUST BE PREFIXED WITH "kafka-workshop-"
     public static final String OUTPUT_TOPIC = "kafka-workshop-top-10-stream-count";
+
+    public static final JsonSerde<SortedCounterMap> COUNTER_MAP_JSON_SERDE = new JsonSerde<>(SortedCounterMap.class);
+    public static final JsonSerde<LinkedHashMap<String, Long>> LINKED_HASH_MAP_JSON_SERDE = new JsonSerde<>(LinkedHashMap.class);
 
     /**
      * The Streams application as a whole can be launched like any normal Java application that has a `main()` method.
@@ -37,7 +41,7 @@ public class TopCustomerArtists {
 
     static void configureTopology(final StreamsBuilder builder) {
         builder
-            .stream(INPUT_TOPIC, Consumed.with(Serdes.String(), CUSTOMER_STREAM_JSON_SERDE))
+            .stream(TOPIC_DATA_DEMO_STREAMS, Consumed.with(Serdes.String(), SERDE_STREAM_JSON))
             .peek((streamId, stream) -> log.info("Stream Received: {}", stream))
 
             // rekey so that the groupBy is by customerid and not streamid

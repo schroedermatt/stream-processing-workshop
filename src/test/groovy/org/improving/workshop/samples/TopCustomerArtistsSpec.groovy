@@ -1,4 +1,4 @@
-package org.improving.workshop.stream
+package org.improving.workshop.samples
 
 import net.datafaker.Faker
 import org.apache.kafka.common.serialization.Serdes
@@ -28,15 +28,15 @@ class TopCustomerArtistsSpec extends Specification {
         driver = new TopologyTestDriver(streamsBuilder.build(), Streams.buildProperties())
 
         inputTopic = driver.createInputTopic(
-                TopCustomerArtists.INPUT_TOPIC,
+                Streams.TOPIC_DATA_DEMO_STREAMS,
                 Serdes.String().serializer(),
-                Streams.CUSTOMER_STREAM_JSON_SERDE.serializer()
+                Streams.SERDE_STREAM_JSON.serializer()
         )
 
         outputTopic = driver.createOutputTopic(
                 TopCustomerArtists.OUTPUT_TOPIC,
                 Serdes.String().deserializer(),
-                Streams.LINKED_HASH_MAP_JSON_SERDE.deserializer()
+                TopCustomerArtists.LINKED_HASH_MAP_JSON_SERDE.deserializer()
         )
 
         streamFaker = new StreamFaker(new Faker())

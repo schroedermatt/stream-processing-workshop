@@ -1,4 +1,4 @@
-package org.improving.workshop.stream
+package org.improving.workshop.samples
 
 import net.datafaker.Faker
 import org.apache.kafka.common.serialization.Serdes
@@ -33,21 +33,21 @@ class PurchaseEventTicketSpec extends Specification {
         driver = new TopologyTestDriver(streamsBuilder.build(), Streams.buildProperties())
 
         eventInputTopic = driver.createInputTopic(
-                PurchaseEventTicket.INPUT_TOPIC_EVENTS,
+                Streams.TOPIC_DATA_DEMO_EVENTS,
                 Serdes.String().serializer(),
-                Streams.EVENT_JSON_SERDE.serializer()
+                Streams.SERDE_EVENT_JSON.serializer()
         )
 
         ticketInputTopic = driver.createInputTopic(
-                PurchaseEventTicket.INPUT_TOPIC_TICKETS,
+                Streams.TOPIC_DATA_DEMO_TICKETS,
                 Serdes.String().serializer(),
-                Streams.TICKET_JSON_SERDE.serializer()
+                Streams.SERDE_TICKET_JSON.serializer()
         )
 
         outputTopic = driver.createOutputTopic(
                 PurchaseEventTicket.OUTPUT_TOPIC,
                 Serdes.String().deserializer(),
-                Streams.TICKET_CONFIRMATION_JSON_SERDE.deserializer()
+                PurchaseEventTicket.TICKET_CONFIRMATION_JSON_SERDE.deserializer()
         )
 
         eventFaker = new EventFaker(new Faker())

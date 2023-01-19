@@ -1,4 +1,4 @@
-package org.improving.workshop.stream;
+package org.improving.workshop.samples;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
@@ -7,11 +7,12 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Produced;
 import org.improving.workshop.Streams;
 
+import static org.improving.workshop.Streams.TOPIC_DATA_DEMO_STREAMS;
 import static org.improving.workshop.Streams.startStreams;
 
 @Slf4j
 public class CustomerStreamCount {
-    public static final String INPUT_TOPIC = "data-demo-streams";
+    // MUST BE PREFIXED WITH "kafka-workshop-"
     public static final String OUTPUT_TOPIC = "kafka-workshop-customer-stream-count";
 
     /**
@@ -30,7 +31,7 @@ public class CustomerStreamCount {
     static void configureTopology(final StreamsBuilder builder) {
         builder
             // consume events from INPUT_TOPIC
-            .stream(INPUT_TOPIC, Consumed.with(Serdes.String(), Streams.CUSTOMER_STREAM_JSON_SERDE))
+            .stream(TOPIC_DATA_DEMO_STREAMS, Consumed.with(Serdes.String(), Streams.SERDE_STREAM_JSON))
             .peek((streamId, stream) -> log.info("Stream Received: {}", stream))
 
             // rekey so that the groupBy is by customerid and not streamid

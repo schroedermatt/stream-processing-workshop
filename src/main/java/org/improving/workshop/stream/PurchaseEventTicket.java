@@ -69,6 +69,7 @@ public class PurchaseEventTicket {
                         return new EventTicket(ticket, event);
                     }
             )
+            // filter out ticket requests for events that do not exist
             .filter((eventId, eventTicket) -> eventTicket != null)
             .groupByKey()
             .aggregate(

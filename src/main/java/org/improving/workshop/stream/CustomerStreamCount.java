@@ -34,12 +34,8 @@ public class CustomerStreamCount {
             .peek((streamId, stream) -> log.info("Stream Received: {}", stream))
 
             // rekey so that the groupBy is by customerid and not streamid
-            // groupBy is shorthand for the two lines below (selectKey + groupByKey)
+            // groupBy is shorthand for selectKey + groupByKey
             .groupBy((k, v) -> v.customerid())
-
-            // rekey so that the groupBy is by customerid and not streamid
-            // .selectKey((streamId, stream) -> stream.customerid())
-            // .groupByKey()
 
             // count the number of times a key is seen (and store in KTable) - you could use aggregate to do this too
             .count()

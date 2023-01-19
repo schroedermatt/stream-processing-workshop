@@ -4133,8 +4133,8 @@
     },
     {
       "type": "image",
-      "version": 87,
-      "versionNonce": 293548887,
+      "version": 89,
+      "versionNonce": 584264729,
       "isDeleted": false,
       "id": "N7Wort4thR6KjbN_8W3GB",
       "fillStyle": "hachure",
@@ -4153,7 +4153,7 @@
       "groupIds": [],
       "roundness": null,
       "boundElements": [],
-      "updated": 1674158490968,
+      "updated": 1674163141579,
       "link": null,
       "locked": false,
       "status": "saved",
@@ -14615,32 +14615,41 @@
       ]
     },
     {
-      "id": "wjgcP-MNGqOIPp0fgeJzH",
       "type": "arrow",
-      "x": -120,
-      "y": 1840,
-      "width": 100,
-      "height": 80,
-      "angle": 0,
-      "strokeColor": "#000000",
-      "backgroundColor": "#ffff",
+      "version": 12,
+      "versionNonce": 246849751,
+      "isDeleted": false,
+      "id": "wjgcP-MNGqOIPp0fgeJzH",
       "fillStyle": "solid",
       "strokeWidth": 1,
       "strokeStyle": "dashed",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": -120,
+      "y": 1840,
+      "strokeColor": "#000000",
+      "backgroundColor": "#ffff",
+      "width": 100,
+      "height": 80,
+      "seed": 855995097,
       "groupIds": [],
       "roundness": {
         "type": 2
       },
-      "seed": 855995097,
-      "version": 12,
-      "versionNonce": 246849751,
-      "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1674160495079,
       "link": null,
       "locked": false,
+      "startBinding": {
+        "elementId": "w1xcb7dleGlNOpbrG-tIp",
+        "focus": 1.93383663395725,
+        "gap": 13.795165219450706
+      },
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
       "points": [
         [
           0,
@@ -14650,16 +14659,7 @@
           100,
           80
         ]
-      ],
-      "lastCommittedPoint": null,
-      "startBinding": {
-        "elementId": "w1xcb7dleGlNOpbrG-tIp",
-        "focus": 1.93383663395725,
-        "gap": 13.795165219450706
-      },
-      "endBinding": null,
-      "startArrowhead": null,
-      "endArrowhead": "arrow"
+      ]
     }
   ],
   "appState": {

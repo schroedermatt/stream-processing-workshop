@@ -57,6 +57,8 @@ See existing tests like [CustomerStreamCountSpec](./src/test/groovy/org/improvin
 
 If you want to run this project against a local Kafka cluster with mock data then head over to [data-demo](https://github.com/schroedermatt/data-demo) and walk through the readme to get started. It has everything you need to start a local environment and start producing the mock data for this workshop to your environment. 
 
+<img src="./assets/local-env.png" alt="erd" width="500"/>
+
 When running locally, your settings in `Streams.buildProperties()` should look like below.
 
 ```
@@ -81,6 +83,8 @@ When running locally, your settings in `Streams.buildProperties()` should look l
 ### Confluent Cloud Environment
 
 If you are doing this workshop in a shared Confluent Cloud environment. You will need the bootstrap server, username, and password values. With these, you can modify your `Streams.buildProperties()` so that it looks like below.
+
+<img src="./assets/ccloud-env.png" alt="erd" width="500"/>
 
 ```
 // Streams.java

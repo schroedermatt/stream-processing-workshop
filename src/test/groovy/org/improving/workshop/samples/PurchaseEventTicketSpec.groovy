@@ -1,6 +1,6 @@
 package org.improving.workshop.samples
 
-import net.datafaker.Faker
+
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.TestInputTopic
@@ -8,18 +8,19 @@ import org.apache.kafka.streams.TestOutputTopic
 import org.apache.kafka.streams.TopologyTestDriver
 import org.improving.workshop.Streams
 import org.msse.demo.mockdata.music.event.Event
-import org.msse.demo.mockdata.music.event.EventFaker
 import org.msse.demo.mockdata.music.ticket.Ticket
-import org.msse.demo.mockdata.music.ticket.TicketFaker
 import spock.lang.Specification
+
+import static org.improving.workshop.utils.DataFaker.TICKETS
 
 class PurchaseEventTicketSpec extends Specification {
     TopologyTestDriver driver
-    EventFaker eventFaker
-    TicketFaker ticketFaker
 
+    // inputs
     TestInputTopic<String, Event> eventInputTopic
     TestInputTopic<String, Ticket> ticketInputTopic
+
+    // outputs
     TestOutputTopic<String, PurchaseEventTicket.EventTicketConfirmation> outputTopic
 
     def 'setup'() {
@@ -49,9 +50,6 @@ class PurchaseEventTicketSpec extends Specification {
                 Serdes.String().deserializer(),
                 PurchaseEventTicket.TICKET_CONFIRMATION_JSON_SERDE.deserializer()
         )
-
-        eventFaker = new EventFaker(new Faker())
-        ticketFaker = new TicketFaker(new Faker())
     }
 
     def 'cleanup'() {
@@ -67,7 +65,7 @@ class PurchaseEventTicketSpec extends Specification {
         eventInputTopic.pipeInput(eventId, new Event(eventId, "artist-1", "venue-1", 5, "today"))
 
         and: 'a purchased ticket for the event'
-        ticketInputTopic.pipeInput(ticketFaker.generate("customer-1", eventId))
+        ticketInputTopic.pipeInput(TICKETS.generate("customer-1", eventId))
 
         when: 'reading the output records'
         def outputRecords = outputTopic.readRecordsToList()
@@ -86,10 +84,10 @@ class PurchaseEventTicketSpec extends Specification {
         confirmation.value().confirmationId
 
         when: 'purchasing 4 more tickets for the event'
-        ticketInputTopic.pipeInput(ticketFaker.generate("customer-2", eventId))
-        ticketInputTopic.pipeInput(ticketFaker.generate("customer-3", eventId))
-        ticketInputTopic.pipeInput(ticketFaker.generate("customer-4", eventId))
-        ticketInputTopic.pipeInput(ticketFaker.generate("customer-5", eventId))
+        ticketInputTopic.pipeInput(TICKETS.generate("customer-2", eventId))
+        ticketInputTopic.pipeInput(TICKETS.generate("customer-3", eventId))
+        ticketInputTopic.pipeInput(TICKETS.generate("customer-4", eventId))
+        ticketInputTopic.pipeInput(TICKETS.generate("customer-5", eventId))
 
         then: 'the expected number of records were received'
         def latestRecords = outputTopic.readRecordsToList()
@@ -105,9 +103,9 @@ class PurchaseEventTicketSpec extends Specification {
         latestRecords.last().value().remainingTickets == 0
 
         when: 'purchasing additional tickets'
-        ticketInputTopic.pipeInput(ticketFaker.generate("customer-112", eventId))
-        ticketInputTopic.pipeInput(ticketFaker.generate("customer-113", eventId))
-        ticketInputTopic.pipeInput(ticketFaker.generate("customer-114", eventId))
+        ticketInputTopic.pipeInput(TICKETS.generate("customer-112", eventId))
+        ticketInputTopic.pipeInput(TICKETS.generate("customer-113", eventId))
+        ticketInputTopic.pipeInput(TICKETS.generate("customer-114", eventId))
 
         then: 'the expected number of records were received'
         def finalRecords = outputTopic.readRecordsToList()

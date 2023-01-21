@@ -1,6 +1,5 @@
 package org.improving.workshop.samples
 
-import net.datafaker.Faker
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.TestInputTopic
@@ -8,13 +7,17 @@ import org.apache.kafka.streams.TestOutputTopic
 import org.apache.kafka.streams.TopologyTestDriver
 import org.improving.workshop.Streams
 import org.msse.demo.mockdata.music.stream.Stream
-import org.msse.demo.mockdata.music.stream.StreamFaker
 import spock.lang.Specification
+
+import static org.improving.workshop.utils.DataFaker.STREAMS
 
 class TopCustomerArtistsSpec extends Specification {
     TopologyTestDriver driver
-    StreamFaker streamFaker
+
+    // inputs
     TestInputTopic<String, Stream> inputTopic
+
+    // outputs
     TestOutputTopic<String, LinkedHashMap<String, Long>> outputTopic
 
     def 'setup'() {
@@ -38,8 +41,6 @@ class TopCustomerArtistsSpec extends Specification {
                 Serdes.String().deserializer(),
                 TopCustomerArtists.LINKED_HASH_MAP_JSON_SERDE.deserializer()
         )
-
-        streamFaker = new StreamFaker(new Faker())
     }
 
     def 'cleanup'() {
@@ -50,12 +51,12 @@ class TopCustomerArtistsSpec extends Specification {
 
     def "customer top streamed artists"() {
         given: 'multiple customer streams received by the topology'
-        inputTopic.pipeInput(UUID.randomUUID().toString(), streamFaker.generate("1", "2"))
-        inputTopic.pipeInput(UUID.randomUUID().toString(), streamFaker.generate("1", "2"))
-        inputTopic.pipeInput(UUID.randomUUID().toString(), streamFaker.generate("1", "3"))
-        inputTopic.pipeInput(UUID.randomUUID().toString(), streamFaker.generate("1", "4"))
-        inputTopic.pipeInput(UUID.randomUUID().toString(), streamFaker.generate("1", "4"))
-        inputTopic.pipeInput(UUID.randomUUID().toString(), streamFaker.generate("1", "4"))
+        inputTopic.pipeInput(UUID.randomUUID().toString(), STREAMS.generate("1", "2"))
+        inputTopic.pipeInput(UUID.randomUUID().toString(), STREAMS.generate("1", "2"))
+        inputTopic.pipeInput(UUID.randomUUID().toString(), STREAMS.generate("1", "3"))
+        inputTopic.pipeInput(UUID.randomUUID().toString(), STREAMS.generate("1", "4"))
+        inputTopic.pipeInput(UUID.randomUUID().toString(), STREAMS.generate("1", "4"))
+        inputTopic.pipeInput(UUID.randomUUID().toString(), STREAMS.generate("1", "4"))
 
         when: 'reading the output records'
         def outputRecords = outputTopic.readRecordsToList()
@@ -75,8 +76,8 @@ class TopCustomerArtistsSpec extends Specification {
         ]
 
         when: 'streaming artist 5 twice'
-        inputTopic.pipeInput(UUID.randomUUID().toString(), streamFaker.generate("1", "5"))
-        inputTopic.pipeInput(UUID.randomUUID().toString(), streamFaker.generate("1", "5"))
+        inputTopic.pipeInput(UUID.randomUUID().toString(), STREAMS.generate("1", "5"))
+        inputTopic.pipeInput(UUID.randomUUID().toString(), STREAMS.generate("1", "5"))
 
         then: 'the latest top 3 has artist 5 present and artist 3 removed'
         def updatedTop3 = outputTopic.readRecordsToList().last()
@@ -91,8 +92,8 @@ class TopCustomerArtistsSpec extends Specification {
         ]
 
         when: 'streaming artist 3 two more times'
-        inputTopic.pipeInput(UUID.randomUUID().toString(), streamFaker.generate("1", "3"))
-        inputTopic.pipeInput(UUID.randomUUID().toString(), streamFaker.generate("1", "3"))
+        inputTopic.pipeInput(UUID.randomUUID().toString(), STREAMS.generate("1", "3"))
+        inputTopic.pipeInput(UUID.randomUUID().toString(), STREAMS.generate("1", "3"))
 
         then: 'the latest top 3 has artist 3 back in and artist 5 removed'
         def latestTop3 = outputTopic.readRecordsToList().last()

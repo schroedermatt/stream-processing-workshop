@@ -150,8 +150,8 @@ Utopia has big dreams and they need your help. For each of the scenarios below,
 Context: A Customer streams (listens to) an artist.
 
 Goals:
-- Find the top 3 streamed artists across all customers.
 - Find the top 3 streamed artists for each customer (completed -- see [TopCustomerArtists](#TopCustomerArtists) sample)
+- Find the top 3 streamed artists across all customers.
 - BONUS) Group the customers that have the same top streamed artist.
 
 ### SOLD OUT EVENT
@@ -162,6 +162,7 @@ Goals:
 - Alert when an event is within 10% of max capacity.
 - Alert when an event is sold out.
 - BONUS) Alert the event artist's top streamers when an event is created.
+  - DOUBLE BONUS) Include the customer's email address in the event.
 
 ### MUST SEE VENUE
 
@@ -179,6 +180,19 @@ Goals:
 - Alert customer when an event is created in their most streamed genre.
 - BONUS) Alert customer when there is a popular* event within their most streamed genre.
     - *popular: within 10% max capacity (almost sold out)
+
+### GLOBAL TOTALS
+
+Context: Data exists in the platform, but we want to keep track of running totals.
+
+Goals:
+- Find the total count of customers.
+- Find the total count of streams across all customers.
+- Find the total count of events.
+- Find the total count of tickets.
+- BONUS) Find the total count of events that have already occurred.
+
+_This is not as simple as it may seem, as your data is split across processing tasks._
 
 ### SUGGESTED EVENTS - LOCATION
 

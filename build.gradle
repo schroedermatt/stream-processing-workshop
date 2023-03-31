@@ -25,22 +25,22 @@ dependencies {
     implementation 'org.apache.kafka:kafka-streams:7.3.0-ce'
 
     // included for the Serdes
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
-    implementation 'org.springframework.kafka:spring-kafka:3.0.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+    implementation 'org.springframework.kafka:spring-kafka:3.0.4'
 
-    implementation 'net.datafaker:datafaker:1.7.0'
+    implementation 'net.datafaker:datafaker:1.8.1'
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.slf4j:slf4j-api:2.0.5'
     implementation 'org.slf4j:slf4j-simple:2.0.5'
 
-    compileOnly 'org.projectlombok:lombok:1.18.24'
-    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    compileOnly 'org.projectlombok:lombok:1.18.26'
+    annotationProcessor 'org.projectlombok:lombok:1.18.26'
 
     testCompileOnly 'org.projectlombok:lombok:1.18.24'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
     testImplementation 'org.apache.kafka:kafka-streams-test-utils:7.3.0-ce'
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
-    testImplementation 'org.codehaus.groovy:groovy-all:3.0.14'
+    testImplementation 'org.codehaus.groovy:groovy-all:3.0.16'
 }
 
 test {

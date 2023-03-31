@@ -67,15 +67,15 @@ public class Streams {
 
         // Where to find Kafka broker(s).
         // LOCAL
-        // streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:19092,localhost:29092,localhost:39092");
+         streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:19092,localhost:29092,localhost:39092");
 
         // CONFLUENT CLOUD -- comment the below configurations out if running locally
         // TODO - WORKSHOP ATTENDEES UPDATE WITH PROVIDED BOOTSTRAP SERVER
-        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "pkc-mg1wx.us-east-2.aws.confluent.cloud:9092");
+//        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "pkc-mg1wx.us-east-2.aws.confluent.cloud:9092");
         // TODO - WORKSHOP ATTENDEES UPDATE WITH PROVIDED API KEY & SECRET
-        streamsConfiguration.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='**redacted**' password='**redacted**';");
-        streamsConfiguration.put(StreamsConfig.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
-        streamsConfiguration.put("sasl.mechanism", "PLAIN");
+//        streamsConfiguration.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='GDESIGB2BMXPMLKJ' password='fg6FyZeRuh2M3FTuz14I0lDaHsXCeC9A1pK3aVcQR/U5QqhUnQNXSPpTt5a3vj1O';");
+//        streamsConfiguration.put(StreamsConfig.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
+//        streamsConfiguration.put("sasl.mechanism", "PLAIN");
 
 
         // Specify default (de)serializers for record keys and for record values.

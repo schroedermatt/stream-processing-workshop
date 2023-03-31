@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
     // https://jitpack.io/#schroedermatt/data-demo
-    implementation 'com.github.schroedermatt.data-demo:mockdata:0.1.0'
+    implementation 'com.github.schroedermatt.data-demo:mockdata:0.1.1'
 
     implementation 'org.apache.kafka:kafka-clients:7.3.0-ce'
     implementation 'org.apache.kafka:kafka-streams:7.3.0-ce'

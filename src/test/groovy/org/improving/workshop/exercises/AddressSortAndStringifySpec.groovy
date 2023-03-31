@@ -22,7 +22,7 @@ class AddressSortAndStringifySpec extends Specification {
         // instantiate new builder
         StreamsBuilder streamsBuilder = new StreamsBuilder()
 
-        // build the RemainingEventTickets topology (by reference)
+        // build the AddressSortAndStringify topology (by reference)
         AddressSortAndStringify.configureTopology(streamsBuilder)
 
         // build the TopologyTestDriver

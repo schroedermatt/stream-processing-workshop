@@ -1,4 +1,4 @@
-package org.improving.workshop.samples
+package org.improving.workshop.exercises.stateful
 
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
@@ -6,6 +6,7 @@ import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TestOutputTopic
 import org.apache.kafka.streams.TopologyTestDriver
 import org.improving.workshop.Streams
+import org.improving.workshop.exercises.stateful.ArtistTicketCount
 import org.msse.demo.mockdata.music.event.Event
 import org.msse.demo.mockdata.music.ticket.Ticket
 import spock.lang.Specification

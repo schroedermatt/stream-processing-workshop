@@ -1,4 +1,4 @@
-package org.improving.workshop.exercises
+package org.improving.workshop.exercises.stateless
 
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KeyValue

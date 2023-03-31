@@ -33,17 +33,37 @@ public class ArtistTicketCount {
     }
 
     static void configureTopology(final StreamsBuilder builder) {
-        // hint: store Events in a table so that the ticket can reference them to find the Artist
-        // see samples/PurchaseEventTicket for an example of creating a KTable
+        // store events in a table so that the ticket can reference them to find capacity
+        KTable<String, Event> eventsTable = builder
+                .table(
+                        TOPIC_DATA_DEMO_EVENTS,
+                        Materialized
+                                .<String, Event>as(persistentKeyValueStore("events"))
+                                .withKeySerde(Serdes.String())
+                                .withValueSerde(Streams.SERDE_EVENT_JSON)
+                );
 
-//        builder
-//            .stream(TOPIC_DATA_DEMO_TICKETS, Consumed.with(Serdes.String(), SERDE_TICKET_JSON))
-//            .peek((ticketId, ticketRequest) -> log.info("Ticket Requested: {}", ticketRequest))
-//
-//            // solution goes here
-//
-//            .peek((artistId, count) -> log.info("Artist '{}' has sold {} total tickets", artistId, count))
-//            // NOTE: when using ccloud, the topic must exist or 'auto.create.topics.enable' set to true (dedicated cluster required)
-//            .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.Long()));
+        // capture the backside of the table to log a confirmation that the Event was received
+        eventsTable.toStream().peek((key, event) -> log.info("Event '{}' registered for artist '{}' at venue '{}' with a capacity of {}.", key, event.artistid(), event.venueid(), event.capacity()));
+
+        builder
+                .stream(TOPIC_DATA_DEMO_TICKETS, Consumed.with(Serdes.String(), SERDE_TICKET_JSON))
+                .peek((ticketId, ticketRequest) -> log.info("Ticket Requested: {}", ticketRequest))
+
+                // rekey by eventid so we can join against the event ktable
+                .selectKey((ticketId, ticketRequest) -> ticketRequest.eventid(), Named.as("rekey-by-eventid"))
+
+                // join the incoming ticket to the event that it is for
+                .join(
+                        eventsTable,
+                        (eventId, ticket, event) -> event.artistid()
+                )
+                .groupBy((eventId, artistId) -> artistId)
+                // artistid, ticket count
+                .count()
+                .toStream()
+                .peek((artistId, count) -> log.info("Artist '{}' has sold {} total tickets", artistId, count))
+                // NOTE: when using ccloud, the topic must exist or 'auto.create.topics.enable' set to true (dedicated cluster required)
+                .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.Long()));
     }
 }

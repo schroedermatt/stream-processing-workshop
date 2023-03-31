@@ -207,14 +207,6 @@ Goals:
 
 ## Samples
 
-### CustomerStreamCount
-
-Find the total Stream count for each Customer.
-
-* Solution: [CustomerStreamCount](./src/main/java/org/improving/workshop/samples/CustomerStreamCount.java)
-* Test: [CustomerStreamCountSpec](./src/test/groovy/org/improving/workshop/samples/CustomerStreamCountSpec.groovy)
-* Topology: [Customer Stream Count Topology](./assets/samples/total-customer-stream-count.png)
-
 ### TopCustomerArtists
 
 Find the Top 3 Streamed Artists for each Customer.

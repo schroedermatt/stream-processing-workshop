@@ -34,20 +34,15 @@ public class AddressSortAndStringify {
     }
 
     static void configureTopology(final StreamsBuilder builder) {
-        builder
-            .stream(TOPIC_DATA_DEMO_ADDRESSES, Consumed.with(Serdes.String(), SERDE_ADDRESS_JSON))
-            .peek((addressId, address) -> log.info("Address Received: {}, {}", addressId, address))
-
-            // DESIRED FORMAT
-            // "{line1}, {line2}, {citynm}, {state} {zip5}-{zip4} {countrycd}"
-            .map((id, address) -> {
-                String add = String.format("%s, %s, %s, %s %s-%s %s",
-                        address.line1(), address.line2(), address.citynm(), address.state(), address.zip5(), address.zip4(), address.countrycd());
-                return new KeyValue<>(address.state(), add);
-            })
-
-            .peek((addressId, address) -> log.info("Address Processed: {}, {}", addressId, address))
-            // NOTE: when using ccloud, the topic must exist or 'auto.create.topics.enable' set to true (dedicated cluster required)
-            .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+//        builder
+//            .stream(TOPIC_DATA_DEMO_ADDRESSES, Consumed.with(Serdes.String(), SERDE_ADDRESS_JSON))
+//            .peek((addressId, address) -> log.info("Address Received: {}, {}", addressId, address))
+//
+//            // DESIRED FORMAT
+//            // "{line1}, {line2}, {citynm}, {state} {zip5}-{zip4} {countrycd}"
+//
+//            .peek((addressId, address) -> log.info("Address Processed: {}, {}", addressId, address))
+//            // NOTE: when using ccloud, the topic must exist or 'auto.create.topics.enable' set to true (dedicated cluster required)
+//            .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
     }
 }

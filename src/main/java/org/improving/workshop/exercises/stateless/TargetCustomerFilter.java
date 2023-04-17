@@ -32,14 +32,13 @@ public class TargetCustomerFilter {
     }
 
     static void configureTopology(final StreamsBuilder builder) {
-        builder
-            .stream(TOPIC_DATA_DEMO_CUSTOMERS, Consumed.with(Serdes.String(), SERDE_CUSTOMER_JSON))
-
-            // BIRTHDT FORMAT "YYYY-MM-DD"
-            .filter((s, customer) -> customer.birthdt().startsWith("199"))
-
-            .peek((customerId, customer) -> log.info("Target Customer Found, 90s music incoming - {}", customerId))
-            // NOTE: when using ccloud, the topic must exist or 'auto.create.topics.enable' set to true (dedicated cluster required)
-            .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), SERDE_CUSTOMER_JSON));
+//        builder
+//            .stream(TOPIC_DATA_DEMO_CUSTOMERS, Consumed.with(Serdes.String(), SERDE_CUSTOMER_JSON))
+//
+//            // BIRTHDT FORMAT "YYYY-MM-DD"
+//
+//            .peek((customerId, customer) -> log.info("Target Customer Found, 90s music incoming - {}", customerId))
+//            // NOTE: when using ccloud, the topic must exist or 'auto.create.topics.enable' set to true (dedicated cluster required)
+//            .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), SERDE_CUSTOMER_JSON));
     }
 }

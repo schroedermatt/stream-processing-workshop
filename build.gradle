@@ -22,6 +22,20 @@ application {
     mainClassName = project.hasProperty("stream") ? project.getProperty("stream") : "NULL"
 }
 
+run {
+    // configure tracing properties if enabled
+    if ("true" == project.tracingEnabled) {
+        systemProperty "otel.traces.exporter", 'otlp'
+        systemProperty "otel.exporter.otlp.protocol", 'grpc'
+        systemProperty "otel.exporter.otlp.endpoint", 'http://localhost:4317'
+        systemProperty "otel.resource.attributes", "service.name=$mainClassName"
+        systemProperty "otel.logs.exporter", 'none'
+        systemProperty "otel.metrics.exporter", 'none'
+
+        jvmArgs = ["-javaagent:opentelemetry-javaagent_1.25.0.jar"]
+    }
+}
+
 dependencies {
     // https://jitpack.io/#schroedermatt/data-demo
     implementation 'com.github.schroedermatt.data-demo:mockdata:0.1.1'

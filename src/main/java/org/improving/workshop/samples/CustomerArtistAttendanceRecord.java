@@ -1,8 +1,10 @@
 package org.improving.workshop.samples;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -25,6 +27,7 @@ public class CustomerArtistAttendanceRecord {
     // MUST BE PREFIXED WITH "kafka-workshop-"
     public static final String OUTPUT_TOPIC = "kafka-workshop-superfans";
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final JsonSerde<CustomerEvent> CUSTOMER_EVENT_JSON_SERDE = new JsonSerde<>(CustomerEvent.class);
     public static final JsonSerde<GlobalCustomerArtistAttendance> GLOBAL_CUSTOMER_ARTIST_ATTENDANCE_JSON_SERDE = new JsonSerde<>(GlobalCustomerArtistAttendance.class);
 
@@ -138,11 +141,16 @@ public class CustomerArtistAttendanceRecord {
             )
 
             .toStream()
-            .peek((customerId, attendance) -> log.info("Customer '{}' Attendance Record: {}", customerId, attendance))
+            .peek(CustomerArtistAttendanceRecord::logPretty)
             .mapValues(GlobalCustomerArtistAttendance::getSuperfanArtists)
             .filter((customerId, superfanArtists) -> superfanArtists.size() > 0)
             .mapValues((k, v) -> "'" + k +"' IS A SUPERFAN OF ARTISTS " + v)
             .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+    }
+
+    @SneakyThrows
+    private static void logPretty(String k, GlobalCustomerArtistAttendance v) {
+        log.info("Customer '{}' Attendance Record: {}", k, MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(v));
     }
 
     @Data

@@ -1,8 +1,10 @@
 package org.improving.workshop.samples;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
@@ -24,6 +26,7 @@ public class ArtistStreamAndTicketMetrics {
     // MUST BE PREFIXED WITH "kafka-workshop-"
     public static final String OUTPUT_TOPIC = "kafka-workshop-artist-stream-and-ticket-metrics";
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final JsonSerde<Metrics> METRICS_JSON_SERDE = new JsonSerde<>(Metrics.class);
     public static final JsonSerde<EventTicket> EVENT_TICKET_JSON_SERDE = new JsonSerde<>(EventTicket.class);
     public static final JsonSerde<GlobalMetrics> GLOBAL_METRICS_JSON_SERDE = new JsonSerde<>(GlobalMetrics.class);
@@ -114,8 +117,13 @@ public class ArtistStreamAndTicketMetrics {
                 .toStream()
                 // we don't need a key, so null it out
                 .selectKey((k, v) -> null)
-                .peek((k,v) -> log.info("Global Metrics Updated: {}", v))
+                .peek(ArtistStreamAndTicketMetrics::logMetricsPretty)
                 .to(OUTPUT_TOPIC, Produced.valueSerde(GLOBAL_METRICS_JSON_SERDE));
+    }
+
+    @SneakyThrows
+    private static void logMetricsPretty(Object k, GlobalMetrics v) {
+        log.info("Global Metrics Updated: {}", MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(v));
     }
 
     @Data

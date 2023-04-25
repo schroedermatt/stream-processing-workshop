@@ -1,8 +1,10 @@
 package org.improving.workshop.samples;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -23,6 +25,7 @@ public class ArtistStreamByStateMetrics {
     // MUST BE PREFIXED WITH "kafka-workshop-"
     public static final String OUTPUT_TOPIC = "kafka-workshop-artist-stream-by-state-metrics";
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final JsonSerde<CustomerStream> CUSTOMER_STREAM_JSON_SERDE = new JsonSerde<>(CustomerStream.class);
     public static final JsonSerde<ArtistStateMetrics> ARTIST_STATE_METRICS_JSON_SERDE = new JsonSerde<>(ArtistStateMetrics.class);
 
@@ -107,8 +110,13 @@ public class ArtistStreamByStateMetrics {
                                 .withValueSerde(ARTIST_STATE_METRICS_JSON_SERDE)
                 )
                 .toStream()
-                .peek((k,v) -> log.info("{} Metrics Updated: {}", k, v))
+                .peek(ArtistStreamByStateMetrics::logMetricsPretty)
                 .to(OUTPUT_TOPIC, Produced.valueSerde(ARTIST_STATE_METRICS_JSON_SERDE));
+    }
+
+    @SneakyThrows
+    private static void logMetricsPretty(String k, ArtistStateMetrics v) {
+        log.info("{} Metrics Updated: {}", k, MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(v));
     }
 
     @Data

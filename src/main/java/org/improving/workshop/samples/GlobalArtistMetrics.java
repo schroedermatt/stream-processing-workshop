@@ -116,7 +116,6 @@ public class GlobalArtistMetrics {
                 .selectKey((k, v) -> null)
                 .peek((k,v) -> log.info("Global Metrics Updated: {}", v))
                 .to(OUTPUT_TOPIC, Produced.valueSerde(GLOBAL_METRICS_JSON_SERDE));
-
     }
 
     @Data

@@ -1,11 +1,12 @@
 package org.improving.workshop.samples;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
 import org.improving.workshop.Streams;
@@ -24,9 +25,9 @@ public class ArtistEventsGrossEarnings {
     // MUST BE PREFIXED WITH "kafka-workshop-"
     public static final String OUTPUT_TOPIC = "kafka-workshop-artist-events-gross-earnings";
 
-    public static final JsonSerde<Metrics> METRICS_JSON_SERDE = new JsonSerde<>(Metrics.class);
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final JsonSerde<EventTicket> EVENT_TICKET_JSON_SERDE = new JsonSerde<>(EventTicket.class);
-    public static final JsonSerde<GlobalMetrics> GLOBAL_METRICS_JSON_SERDE = new JsonSerde<>(GlobalMetrics.class);
+    public static final JsonSerde<ArtistEventEarnings> ARTIST_EVENT_EARNINGS_JSON_SERDE = new JsonSerde<>(ArtistEventEarnings.class);
 
     /**
      * The Streams application as a whole can be launched like any normal Java application that has a `main()` method.
@@ -42,80 +43,59 @@ public class ArtistEventsGrossEarnings {
     }
 
     static void configureTopology(final StreamsBuilder builder) {
-//        // store events in a table so that the ticket can reference them to find capacity
-//        KTable<String, Event> eventsTable = builder
-//                .table(
-//                        TOPIC_DATA_DEMO_EVENTS,
-//                        Materialized
-//                            .<String, Event>as(persistentKeyValueStore("events"))
-//                            .withKeySerde(Serdes.String())
-//                            .withValueSerde(Streams.SERDE_EVENT_JSON)
-//                );
-//
-//        // count all artist tickets
-//        builder
-//            .stream(TOPIC_DATA_DEMO_TICKETS, Consumed.with(Serdes.String(), SERDE_TICKET_JSON))
-//            .peek((ticketId, ticketRequest) -> log.info("Ticket Requested: {}", ticketRequest))
-//
-//            // rekey by eventid so we can join against the event ktable
-//            .selectKey((ticketId, ticketRequest) -> ticketRequest.eventid(), Named.as("rekey-t-by-eventid"))
-//
-//            // join the incoming ticket to the event that it is for
-//            .join(
-//                    eventsTable,
-//                    (eventId, ticket, event) -> new EventTicket(ticket, event),
-//                    Joined.with(Serdes.String(), SERDE_TICKET_JSON, SERDE_EVENT_JSON)
-//            )
-//
-//            // rekey by artist id so we can group/count all tickets by artistid
-//            .selectKey((s, eventTicket) -> eventTicket.getEvent().artistid(), Named.as("rekey-et-by-artistid"))
-//            .groupByKey(Grouped.with(Serdes.String(), EVENT_TICKET_JSON_SERDE))
-//            .count();
-//
-//        // count all artist streams
-//        KTable<String, Long> artistStreamCountTable = builder
-//                .stream(TOPIC_DATA_DEMO_STREAMS, Consumed.with(Serdes.String(), SERDE_STREAM_JSON))
-//                .peek((streamId, stream) -> log.info("Stream Received: {}", stream))
-//
-//                // rekey by artist id so we can group/count all streams by artistid
-//                .selectKey((streamId, stream) -> stream.artistid(), Named.as("rekey-s-by-artistid"))
-//                .groupByKey()
-//                .count();
-//
-//        // join the artist ticket and stream count tables into a single metrics object
-//        artistTicketCountTable
-//                .outerJoin(artistStreamCountTable, Metrics::new)
-//                .toStream()
-//                .map((k,v) -> {
-//                    v.setArtistId(k);
-//
-//                    // align all artist metrics to a single partition for the cross-artist analytics
-//                    return new KeyValue<>("STATIC_KEY", v);
-//                })
-//                .groupByKey(Grouped.with(Serdes.String(), METRICS_JSON_SERDE))
-//                .aggregate(
-//                        // initializer (doesn't have key, value supplied so the actual initialization is in the aggregator)
-//                        GlobalMetrics::new,
-//
-//                        // aggregator
-//                        (staticKey, artistMetrics, globalMetrics) -> {
-//                            // update the artist's metrics
-//                            globalMetrics.setArtistMetrics(artistMetrics.artistId, artistMetrics);
-//
-//                            return globalMetrics;
-//                        },
-//
-//                        // ktable (materialized) configuration
-//                        Materialized
-//                                .<String, GlobalMetrics>as(persistentKeyValueStore("global-metrics-table"))
-//                                .withKeySerde(Serdes.String())
-//                                .withValueSerde(GLOBAL_METRICS_JSON_SERDE)
-//                )
-//                .toStream()
-//                // we don't need a key, so null it out
-//                .selectKey((k, v) -> null)
-//                .peek((k,v) -> log.info("Global Metrics Updated: {}", v))
-//                .to(OUTPUT_TOPIC, Produced.valueSerde(GLOBAL_METRICS_JSON_SERDE));
+        // store events in a table so that the ticket can reference them to find capacity
+        KTable<String, Event> eventsTable = builder
+                .table(
+                        TOPIC_DATA_DEMO_EVENTS,
+                        Materialized
+                            .<String, Event>as(persistentKeyValueStore("events"))
+                            .withKeySerde(Serdes.String())
+                            .withValueSerde(Streams.SERDE_EVENT_JSON)
+                );
+
+        // count all artist tickets
+        builder
+            .stream(TOPIC_DATA_DEMO_TICKETS, Consumed.with(Serdes.String(), SERDE_TICKET_JSON))
+            .peek((ticketId, ticketRequest) -> log.info("Ticket Requested: {}", ticketRequest))
+
+            // rekey by eventid so we can join against the event ktable
+            .selectKey((ticketId, ticketRequest) -> ticketRequest.eventid(), Named.as("rekey-t-by-eventid"))
+
+            // join the incoming ticket to the event that it is for
+            .join(
+                    eventsTable,
+                    (eventId, ticket, event) -> new EventTicket(ticket, event),
+                    Joined.with(Serdes.String(), SERDE_TICKET_JSON, SERDE_EVENT_JSON)
+            )
+
+            // rekey by artist id so we can group/count all tickets by artistid
+            .groupBy((s, eventTicket) -> eventTicket.getEvent().artistid(), Grouped.with(Serdes.String(), EVENT_TICKET_JSON_SERDE))
+            .aggregate(
+                    // initializer (doesn't have key, value supplied so the actual initialization is in the aggregator)
+                    ArtistEventEarnings::new,
+
+                    // aggregator
+                    (artistId, eventTicket, artistEventEarnings) -> {
+                        // update the artist's event earnings
+                        artistEventEarnings.recordEarnings(eventTicket.event.id(), eventTicket.ticket.price());
+
+                        return artistEventEarnings;
+                    },
+
+                    // ktable (materialized) configuration
+                    Materialized
+                            .<String, ArtistEventEarnings>as(persistentKeyValueStore("artist-earnings-table"))
+                            .withKeySerde(Serdes.String())
+                            .withValueSerde(ARTIST_EVENT_EARNINGS_JSON_SERDE)
+            )
+            .toStream()
+            .peek(ArtistEventsGrossEarnings::logEarningsPretty)
+            .to(OUTPUT_TOPIC, Produced.valueSerde(ARTIST_EVENT_EARNINGS_JSON_SERDE));
+    }
+
+    @SneakyThrows
+    private static void logEarningsPretty(Object k, ArtistEventEarnings v) {
+        log.info("Arist '{}' Earnings Updated: {}", k, MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(v));
     }
 
     @Data
@@ -127,42 +107,23 @@ public class ArtistEventsGrossEarnings {
     }
 
     @Data
-    @AllArgsConstructor
-    public static class GlobalMetrics {
-        Map<String, Metrics> metrics;
-
-        public GlobalMetrics() {
-            this.metrics = new HashMap<>();
-        }
-
-        public void setArtistMetrics(String artistId, Metrics metrics) {
-            this.metrics.put(artistId, metrics);
-        }
-    }
-
-    @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Metrics {
-        public Metrics(Long ticketCount, Long streamCount) {
-            if (ticketCount == null) {
-                this.ticketCount = 0;
-            } else {
-                this.ticketCount = ticketCount.doubleValue();
+    public static class ArtistEventEarnings {
+        Map<String, Double> eventEarnings;
+
+        public void recordEarnings(String eventId, Double ticketPrice) {
+            if (eventEarnings == null) {
+                this.eventEarnings = new HashMap<>();
             }
 
-            if (streamCount == null) {
-                this.streamCount = 0;
+            if (eventEarnings.containsKey(eventId)) {
+                // add ticket price to existing event earnings
+                this.eventEarnings.put(eventId, this.eventEarnings.get(eventId) + ticketPrice);
             } else {
-                this.streamCount = streamCount.doubleValue();
+                // first ticket sold! initialize event earnings
+                this.eventEarnings.put(eventId, ticketPrice);
             }
-
-            this.ticketToStreamRatio = this.ticketCount / this.streamCount;
         }
-
-        private double ticketCount;
-        private double streamCount;
-        private double ticketToStreamRatio;
-        private String artistId;
     }
 }

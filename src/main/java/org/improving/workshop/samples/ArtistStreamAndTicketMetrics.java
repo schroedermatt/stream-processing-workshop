@@ -20,9 +20,9 @@ import static org.apache.kafka.streams.state.Stores.persistentKeyValueStore;
 import static org.improving.workshop.Streams.*;
 
 @Slf4j
-public class GlobalArtistMetrics {
+public class ArtistStreamAndTicketMetrics {
     // MUST BE PREFIXED WITH "kafka-workshop-"
-    public static final String OUTPUT_TOPIC = "kafka-workshop-artist-metrics";
+    public static final String OUTPUT_TOPIC = "kafka-workshop-artist-stream-and-ticket-metrics";
 
     public static final JsonSerde<Metrics> METRICS_JSON_SERDE = new JsonSerde<>(Metrics.class);
     public static final JsonSerde<EventTicket> EVENT_TICKET_JSON_SERDE = new JsonSerde<>(EventTicket.class);

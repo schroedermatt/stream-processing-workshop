@@ -15,7 +15,7 @@ import spock.lang.Specification
 import static org.improving.workshop.utils.DataFaker.STREAMS
 import static org.improving.workshop.utils.DataFaker.TICKETS
 
-class GlobalArtistMetricsSpec extends Specification {
+class ArtistStreamAndTicketMetricsSpec extends Specification {
     TopologyTestDriver driver
 
     // inputs
@@ -24,14 +24,14 @@ class GlobalArtistMetricsSpec extends Specification {
     TestInputTopic<String, Stream> streamInputTopic
 
     // outputs
-    TestOutputTopic<String, GlobalArtistMetrics.GlobalMetrics> outputTopic
+    TestOutputTopic<String, ArtistStreamAndTicketMetrics.GlobalMetrics> outputTopic
 
     def 'setup'() {
         // instantiate new builder
         StreamsBuilder streamsBuilder = new StreamsBuilder()
 
         // build the ArtistMetrics topology (by reference)
-        GlobalArtistMetrics.configureTopology(streamsBuilder)
+        ArtistStreamAndTicketMetrics.configureTopology(streamsBuilder)
 
         // build the TopologyTestDriver
         driver = new TopologyTestDriver(streamsBuilder.build(), Streams.buildProperties())
@@ -55,9 +55,9 @@ class GlobalArtistMetricsSpec extends Specification {
         )
 
         outputTopic = driver.createOutputTopic(
-                GlobalArtistMetrics.OUTPUT_TOPIC,
+                ArtistStreamAndTicketMetrics.OUTPUT_TOPIC,
                 Serdes.String().deserializer(),
-                GlobalArtistMetrics.GLOBAL_METRICS_JSON_SERDE.deserializer()
+                ArtistStreamAndTicketMetrics.GLOBAL_METRICS_JSON_SERDE.deserializer()
         )
     }
 

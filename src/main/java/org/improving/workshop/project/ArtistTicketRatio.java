@@ -2,6 +2,7 @@ package org.improving.workshop.project;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
@@ -25,6 +26,7 @@ import static org.improving.workshop.Streams.*;
 /**
  * Class for solution to Question 1
  */
+@Slf4j
 public class ArtistTicketRatio {
     public static final String OUTPUT_TOPIC = "kafka-artist-ticket-ratio";
     public static final JsonSerde<StreamsPerArtist> STREAMS_PER_ARTIST_JSON_SERDE = new JsonSerde<>(StreamsPerArtist.class);
@@ -39,17 +41,7 @@ public class ArtistTicketRatio {
         final StreamsBuilder builder = new StreamsBuilder();
 
         // configure the processing topology
-        KTable<String, TicketsPerArtist> ticketsPerArtistTable = getArtistTicketTable(builder);
-        KTable<String, Event> artistsTable = builder
-                .table(
-                        TOPIC_DATA_DEMO_ARTISTS,
-                        Materialized
-                                .<String, Event>as(persistentKeyValueStore("artists"))
-                                .withKeySerde(Serdes.String())
-                                .withValueSerde(Streams.SERDE_EVENT_JSON)
-                );
-
-        configureTopology(builder, ticketsPerArtistTable, artistsTable);
+        configureTopology(builder);
 
         // fire up the engines
         startStreams(builder);
@@ -86,7 +78,16 @@ public class ArtistTicketRatio {
                 );
     }
 
-    static void configureTopology(final StreamsBuilder builder, KTable<String, TicketsPerArtist> ticketsPerArtistTable, KTable<String, Event> artistsTable) {
+    static void configureTopology(final StreamsBuilder builder) {
+        KTable<String, TicketsPerArtist> ticketsPerArtistTable = getArtistTicketTable(builder);
+        KTable<String, Artist> artistsTable = builder
+                .table(
+                        TOPIC_DATA_DEMO_ARTISTS,
+                        Materialized
+                                .<String, Artist>as(persistentKeyValueStore("artists"))
+                                .withKeySerde(Serdes.String())
+                                .withValueSerde(Streams.SERDE_ARTIST_JSON)
+                );
 
         builder
                 .stream(TOPIC_DATA_DEMO_STREAMS, Consumed.with(Serdes.String(), SERDE_STREAM_JSON))
@@ -104,19 +105,28 @@ public class ArtistTicketRatio {
                                 .withKeySerde(Serdes.String())
                                 .withValueSerde(STREAMS_PER_ARTIST_JSON_SERDE)
                 ).toStream()
-                .join(ticketsPerArtistTable, (eventId, ticketsPerArtist, streamsPerArtist) -> new ArtistMetrics(streamsPerArtist, ticketsPerArtist))
+                .join(ticketsPerArtistTable, (artistId, ticketsPerArtist, streamsPerArtist) -> new ArtistMetrics(streamsPerArtist, ticketsPerArtist))
+                .peek((artistId, artistMetrics) -> log.info("Ticket Requested: {}", artistMetrics))
                 .groupByKey()
                 .aggregate(
                         ArtistRatio::new,
                         (artistId, artistMetrics, artistRatioCounter) -> {
-                            artistRatioCounter.
+                            artistRatioCounter.setRatio(artistMetrics.ticketsPerArtist.getMap().get(artistId), artistMetrics.streamsPerArtist.getMap().get(artistId));
                             return artistRatioCounter;
                         },
                         Materialized
-                                .<String, StreamsPerArtist>as(persistentKeyValueStore("artist_ratio"))
+                                .<String, ArtistRatio>as(persistentKeyValueStore("stream-per-artist-counts"))
                                 .withKeySerde(Serdes.String())
-                                .withValueSerde(ARTIST_RATIO_JSON_SERDE)
-                );
+                                .withValueSerde(ARTIST_RATIO_JSON_SERDE))
+                .toStream()
+                .join(artistsTable, (artistId, artistRatio, artist) -> new ArtistNameRatio(artistRatio, artist));
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class ArtistNameRatio {
+        private ArtistRatio artistRatio;
+        private Artist artist;
     }
 
     @Data
@@ -124,6 +134,11 @@ public class ArtistTicketRatio {
     public static class ArtistRatio {
         String artistId;
         double ratio;
+        public ArtistRatio() {
+        }
+        public void setRatio(int ticketCount, int streamCount) {
+            ratio = (double) ticketCount /streamCount;
+        }
     }
     @Data
     @AllArgsConstructor

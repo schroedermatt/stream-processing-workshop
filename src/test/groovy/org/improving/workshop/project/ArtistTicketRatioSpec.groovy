@@ -6,12 +6,11 @@ import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TestOutputTopic
 import org.apache.kafka.streams.TopologyTestDriver
 import org.improving.workshop.Streams
-import org.improving.workshop.samples.PurchaseEventTicket
+import org.msse.demo.mockdata.music.artist.Artist
 import org.msse.demo.mockdata.music.event.Event
 import org.msse.demo.mockdata.music.stream.Stream
 import org.msse.demo.mockdata.music.ticket.Ticket
 import spock.lang.Specification
-import static org.improving.workshop.project.ArtistTicketRatio.EventTicket
 
 class ArtistTicketRatioSpec extends Specification {
   TopologyTestDriver driver
@@ -20,9 +19,10 @@ class ArtistTicketRatioSpec extends Specification {
   TestInputTopic<String, Event> eventInputTopic
   TestInputTopic<String, Ticket> ticketInputTopic
   TestInputTopic<String, Stream> streamInputTopic
+  TestInputTopic<String, Artist> artistInputTopic
 
   // outputs
-  TestOutputTopic<String, PurchaseEventTicket.EventTicketConfirmation> outputTopic
+  TestOutputTopic<String, ArtistTicketRatio.ArtistNameRatio> outputTopic
 
 
     def 'setup'() {
@@ -50,13 +50,19 @@ class ArtistTicketRatioSpec extends Specification {
       streamInputTopic = driver.createInputTopic(
               Streams.TOPIC_DATA_DEMO_STREAMS,
               Serdes.String().serializer(),
-              Streams.SERDE_TICKET_JSON.serializer()
+              Streams.SERDE_STREAM_JSON.serializer()
       ) as TestInputTopic<String, Stream>
 
+      artistInputTopic = driver.createInputTopic(
+              Streams.TOPIC_DATA_DEMO_ARTISTS,
+              Serdes.String().serializer(),
+              Streams.SERDE_ARTIST_JSON.serializer()
+      ) as TestInputTopic<String, Artist>
+
       outputTopic = driver.createOutputTopic(
-              PurchaseEventTicket.OUTPUT_TOPIC,
+              ArtistTicketRatio.OUTPUT_TOPIC,
               Serdes.String().deserializer(),
-              PurchaseEventTicket.TICKET_CONFIRMATION_JSON_SERDE.deserializer()
+              ArtistTicketRatio.ARTIST_NAME_RATIO_JSON_SERDE.deserializer()
       )
     }
     def 'cleanup'() {
@@ -65,16 +71,13 @@ class ArtistTicketRatioSpec extends Specification {
       driver.close()
     }
     def "ArtistTicketRatio"() {
-      given: 'a highly exclusive event (5 people allowed)'
+      given:
       String eventId = "1"
-      EventTicket eventTicket
+      artistInputTopic.pipeInput("1", new Artist("1", "Kyle", "Rick"))
       eventInputTopic.pipeInput(eventId, new Event(eventId, "1", "venue-1", 5, "today"))
       ticketInputTopic.pipeInput("1", new Ticket("1", "1", eventId, 2.33))
-      ticketInputTopic.pipeInput("2", new Ticket("2", "2", eventId, 2.33))
-      ticketInputTopic.pipeInput("3", new Ticket("3", "3", eventId, 2.33))
+      ticketInputTopic.pipeInput("1", new Ticket("2", "1", eventId, 2.33))
       streamInputTopic.pipeInput("1", new Stream("1", "1", "1", "10"))
-      streamInputTopic.pipeInput("2", new Stream("2", "2", "1", "10"))
-      streamInputTopic.pipeInput("3", new Stream("3", "3", "1", "10"))
 
       when: 'reading the output records'
       def outputRecords = outputTopic.readRecordsToList()

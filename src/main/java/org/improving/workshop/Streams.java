@@ -56,9 +56,6 @@ public class Streams {
     public static final String TOPIC_DATA_DEMO_VENUES = "data-demo-venues";
     public static final JsonSerde<Venue> SERDE_VENUE_JSON = new JsonSerde<>(Venue.class);
 
-    public static final JsonSerde<ArtistTicketRatio.StreamsPerArtist> STREAMS_PER_ARTIST_JSON_SERDE = new JsonSerde<>(ArtistTicketRatio.StreamsPerArtist.class);
-    public static final JsonSerde<ArtistTicketRatio.TicketsPerArtist> TICKETS_PER_ARTIST_JSON_SERDE = new JsonSerde<>(ArtistTicketRatio.TicketsPerArtist.class);
-    public static final JsonSerde<ArtistTicketRatio.ArtistRatio> ARTIST_RATIO_JSON_SERDE = new JsonSerde<>(ArtistTicketRatio.ArtistRatio.class);
 
     /**
      * Builds the base properties needed to start the Stream

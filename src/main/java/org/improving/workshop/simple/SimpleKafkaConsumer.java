@@ -5,7 +5,8 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Properties;
+import java.util.List;
 
 @SuppressWarnings("InfiniteLoopStatement")
 public class SimpleKafkaConsumer {

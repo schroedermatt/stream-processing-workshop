@@ -73,11 +73,19 @@ class ArtistTicketRatioSpec extends Specification {
     def "ArtistTicketRatio"() {
       given:
       String eventId = "1"
-      artistInputTopic.pipeInput("1", new Artist("1", "Kyle", "Rick"))
+      String eventId2 = "2"
+      artistInputTopic.pipeInput("1", new Artist("1", "Kyle", "Rock"))
+      artistInputTopic.pipeInput("2", new Artist("2", "Yuha", "Roll"))
       eventInputTopic.pipeInput(eventId, new Event(eventId, "1", "venue-1", 5, "today"))
+      eventInputTopic.pipeInput(eventId2, new Event(eventId2, "2", "venue-2", 5, "tomorrow"))
       ticketInputTopic.pipeInput("1", new Ticket("1", "1", eventId, 2.33))
-      ticketInputTopic.pipeInput("1", new Ticket("2", "1", eventId, 2.33))
+      ticketInputTopic.pipeInput("2", new Ticket("2", "1", eventId, 2.33))
+      ticketInputTopic.pipeInput("3", new Ticket("3", "2", eventId2, 2.33))
+      ticketInputTopic.pipeInput("4", new Ticket("4", "2", eventId2, 2.33))
       streamInputTopic.pipeInput("1", new Stream("1", "1", "1", "10"))
+      streamInputTopic.pipeInput("2", new Stream("2", "2", "2", "10"))
+      streamInputTopic.pipeInput("3", new Stream("3", "1", "1", "10"))
+      streamInputTopic.pipeInput("4", new Stream("4", "3", "2", "10"))
 
       when: 'reading the output records'
       def outputRecords = outputTopic.readRecordsToList()

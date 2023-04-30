@@ -14,6 +14,7 @@ import org.springframework.kafka.support.serializer.JsonSerde;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static java.util.Collections.reverseOrder;
 import static java.util.stream.Collectors.toMap;
@@ -60,7 +61,7 @@ public class ArtistTicketRatio {
                 );
 
     }
-    static KTable<String, TicketsPerArtist> getArtistTicketTable(final StreamsBuilder builder) {
+    static KTable<String, TicketsPerArtist2> getArtistTicketTable(final StreamsBuilder builder) {
         KTable<String, Event> eventsTable = builder
                 .table(
                         TOPIC_DATA_DEMO_EVENTS,
@@ -69,6 +70,7 @@ public class ArtistTicketRatio {
                                 .withKeySerde(Serdes.String())
                                 .withValueSerde(Streams.SERDE_EVENT_JSON)
                 );
+       // eventsTable.toStream().peek((eventId, eventStatus) -> log.info("EventsTable '{}'", eventStatus));
 
         return builder
                 .stream(TOPIC_DATA_DEMO_TICKETS, Consumed.with(Serdes.String(), SERDE_TICKET_JSON))
@@ -77,60 +79,55 @@ public class ArtistTicketRatio {
                         eventsTable,
                         (eventId, ticket, event) -> new EventTicket(ticket, event)
                 )
+                //.peek((eventId, eventStatus) -> log.info("Joined '{}'", eventStatus))
                 .groupBy((k, v) -> v.event.artistid(), Grouped.with(Serdes.String(), EVENT_TICKET_JSON_SERDE))
                 .aggregate(
-                        TicketsPerArtist::new,
-                        //TicketsPerArtist2::new,
+                        TicketsPerArtist2::new,
                         (artistId, eventTicket, artistTicketsCounts) -> {
-                            //artistTicketsCounts.addTicketIncrement();
-                            artistTicketsCounts.addTicketIncrement(eventTicket.event.artistid());
+                            artistTicketsCounts.setArtistId(artistId);
+                            artistTicketsCounts.addTicketIncrement();
                             return artistTicketsCounts;
                         },
                         Materialized
-                                .<String, TicketsPerArtist>as(persistentKeyValueStore("tickets-per-artist-counts"))
-                                //.<String, TicketsPerArtist2>as(persistentKeyValueStore("tickets-per-artist-counts2"))
+                                .<String, TicketsPerArtist2>as(persistentKeyValueStore("tickets-per-artist-counts"))
                                 .withKeySerde(Serdes.String())
-                                .withValueSerde(TICKETS_PER_ARTIST_JSON_SERDE)
-                                //.withValueSerde(TICKETS_PER_ARTIST2_JSON_SERDE)
+                                .withValueSerde(TICKETS_PER_ARTIST2_JSON_SERDE)
                 );
     }
 
     static void configureTopology(final StreamsBuilder builder) {
-        KTable<String, TicketsPerArtist> ticketsPerArtistTable = getArtistTicketTable(builder);
-
+        KTable<String, TicketsPerArtist2> ticketsPerArtistTable = getArtistTicketTable(builder);
+        ticketsPerArtistTable.toStream().peek((eventId, eventStatus) -> log.info("WOWOWOWOWOWOdsfsfdsfsd '{}'", eventStatus));
 
         KTable<String, Artist> artistsTable = getArtistTable(builder);
-        artistsTable.toStream().peek((eventId, eventStatus) -> log.info("WOWOWOWOWOWO '{}'", eventStatus));
+        //artistsTable.toStream().peek((eventId, eventStatus) -> log.info("WOWOWOWOWOWO3434 '{}'", eventStatus));
 
 
-        KTable<String, StreamsPerArtist> streamsPerArtistTable = builder.stream(TOPIC_DATA_DEMO_STREAMS, Consumed.with(Serdes.String(), SERDE_STREAM_JSON))
+        KTable<String, StreamsPerArtist2> streamsPerArtistTable = builder.stream(TOPIC_DATA_DEMO_STREAMS, Consumed.with(Serdes.String(), SERDE_STREAM_JSON))
                 .groupBy((k, v) -> v.artistid(), Grouped.with(Serdes.String(), SERDE_STREAM_JSON))
                 .aggregate(
-                        StreamsPerArtist::new,
-                        //StreamsPerArtist2::new,
+                        StreamsPerArtist2::new,
                         (artistId, stream, artistStreamCounts) -> {
-                            artistStreamCounts.addStreamIncrement(stream.artistid());
-                            //artistStreamCounts.addStreamIncrement();
+                            artistStreamCounts.setArtistId(artistId);
+                            artistStreamCounts.addStreamIncrement();
                             return artistStreamCounts;
                         },
 
                         Materialized
-                                .<String, StreamsPerArtist>as(persistentKeyValueStore("stream-per-artist-counts"))
-                                //.<String, StreamsPerArtist2>as(persistentKeyValueStore("stream-per-artist-counts"))
+                                .<String, StreamsPerArtist2>as(persistentKeyValueStore("stream-per-artist-counts"))
                                 .withKeySerde(Serdes.String())
-                                //.withValueSerde(STREAMS_PER_ARTIST2_JSON_SERDE)
-                                .withValueSerde(STREAMS_PER_ARTIST_JSON_SERDE)
+                                .withValueSerde(STREAMS_PER_ARTIST2_JSON_SERDE)
                 );
-
+        //streamsPerArtistTable.toStream().peek((eventId, eventStatus) -> log.info("WOWOWOWOWOWO3434 '{}'", eventStatus));
         KTable<String, ArtistRatio> artistRatioTable = streamsPerArtistTable.toStream()
                 .join(ticketsPerArtistTable, (artistId, ticketsPerArtist, streamsPerArtist) -> new ArtistMetrics(streamsPerArtist, ticketsPerArtist))
+                //.peek((eventId, eventStatus) -> log.info("WOWOWOWOWOWO3434 '{}'", eventStatus))
                 .groupByKey(Grouped.with(Serdes.String(), ARTIST_METRICS_JSON_SERDE))
-
                 .aggregate(
                         ArtistRatio::new,
                         (artistId, artistMetrics, artistRatioCounter) -> {
-                            artistRatioCounter.setRatio(artistMetrics.ticketsPerArtist.getMap().get(artistId), artistMetrics.streamsPerArtist.getMap().get(artistId), artistId);
-                            //artistRatioCounter.setRatio(artistMetrics.getTicketsPerArtist().count, artistMetrics.streamsPerArtist.getCount());
+                            artistRatioCounter.setRatio(artistMetrics.ticketsPerArtist.getCount(), artistMetrics.streamsPerArtist.getCount(), artistId);
+//                            System.out.println(artistRatioCounter);
                             return artistRatioCounter;
                         },
                         Materialized
@@ -139,9 +136,8 @@ public class ArtistTicketRatio {
                                 .withValueSerde(ARTIST_RATIO_JSON_SERDE));
 
         artistRatioTable.toStream()
-                .peek((eventId, eventStatus) -> log.info("WOWOWOWOWOWO '{}'", eventStatus))
                 .join(artistsTable, (artistId, artistRatio, artist) -> new ArtistNameRatio(artistRatio, artist))
-                .peek((eventId, eventStatus) -> log.info("WOWOWOWOWOWO '{}'", eventStatus))
+                //.peek((eventId, eventStatus) -> log.info("WOWOWOWOWOWO '{}'", eventStatus))
                 .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), ARTIST_NAME_RATIO_JSON_SERDE));
     }
 
@@ -157,22 +153,27 @@ public class ArtistTicketRatio {
     @Data
     @AllArgsConstructor
     public static class ArtistRatio {
-        String artistId;
-        double ratio;
+        private HashMap<String, Double> map;
         public ArtistRatio() {
+            this.map = new LinkedHashMap<>();
         }
-        public void setRatio(int ticketCount, int streamCount, String Id) {
-            artistId = Id;
-            ratio = (double) ticketCount /streamCount;
+        public void setRatio(int ticketCount, int streamCount, String id) {
+            map.put(id, (double) (ticketCount/streamCount));
+
+            // replace with sorted map
+            this.map = map.entrySet().stream()
+                    .sorted(reverseOrder(Map.Entry.comparingByValue()))
+                    // keep a limit on the map size
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+            //artistId = Id;
+            //ratio = (double) ticketCount /streamCount;
         }
     }
     @Data
     @AllArgsConstructor
     public static class ArtistMetrics {
-        private TicketsPerArtist ticketsPerArtist;
-        //private TicketsPerArtist2 ticketsPerArtist;
-        private StreamsPerArtist streamsPerArtist;
-        //private StreamsPerArtist2 streamsPerArtist;
+        private TicketsPerArtist2 ticketsPerArtist;
+        private StreamsPerArtist2 streamsPerArtist;
     }
 
     @Data
@@ -200,7 +201,7 @@ public class ArtistTicketRatio {
     @Data
     @AllArgsConstructor
     public static class StreamsPerArtist2 {
-        private Artist artist;
+        private String artistId;
         private int count;
 
         public StreamsPerArtist2() {
@@ -228,7 +229,7 @@ public class ArtistTicketRatio {
     @Data
     @AllArgsConstructor
     public static class TicketsPerArtist2 {
-        private Artist artist;
+        private String artistId;
         private int count;
 
         public TicketsPerArtist2() {

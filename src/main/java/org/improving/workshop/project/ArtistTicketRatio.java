@@ -129,12 +129,11 @@ public class ArtistTicketRatio {
                                 .withKeySerde(Serdes.String())
                                 .withValueSerde(ARTIST_RATIO_JSON_SERDE));
 
-        artistRatioTable.toStream()
-                .join(artistsTable, (artistId, top5Ratio, artist) -> new ArtistNameRatio(top5Ratio, artist));
-
         artistRatioTable
                 .toStream()
-                .groupBy((k, v) -> "X", Grouped.with(Serdes.String(), ARTIST_RATIO_JSON_SERDE))
+                .join(artistsTable, (artistId, artistRatio, artist) -> new ArtistNameRatio(artistRatio.ratio, artist.id(), artist.name()))
+                .selectKey((artistId, artistRatio) -> "X")
+                .groupByKey(Grouped.with(Serdes.String(), ARTIST_NAME_RATIO_JSON_SERDE))
                 .aggregate(
                         ArtistTop5Ratio::new,
                         (artistId, artistRatio, ratioCounter) -> {
@@ -152,8 +151,9 @@ public class ArtistTicketRatio {
     @Data
     @AllArgsConstructor
     public static class ArtistNameRatio {
-        private ArtistRatio artistRatio;
-        private Artist artist;
+        private double artistRatio;
+        private String artistId;
+        private String name;
         public ArtistNameRatio() {
         }
     }
@@ -174,15 +174,15 @@ public class ArtistTicketRatio {
     @Data
     @AllArgsConstructor
     public static class ArtistTop5Ratio {
-        private LinkedHashMap<String, Double> map;
+        private LinkedHashMap<String, ArtistNameRatio> map;
         public ArtistTop5Ratio() {
             this.map = new LinkedHashMap<>();
         }
 
-        public void determinePlacement(ArtistRatio newArtistRatio) {
-           map.put(newArtistRatio.artistId, newArtistRatio.ratio);
+        public void determinePlacement(ArtistNameRatio newArtistRatio) {
+           map.put(newArtistRatio.artistId, newArtistRatio);
             this.map = map.entrySet().stream()
-                    .sorted(reverseOrder(Map.Entry.comparingByValue()))
+                    //.sorted(reverseOrder(Map.Entry.comparingByValue()))
                     .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
         }
 /**

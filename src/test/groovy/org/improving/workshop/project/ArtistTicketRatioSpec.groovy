@@ -91,14 +91,17 @@ class ArtistTicketRatioSpec extends Specification {
 
       then: 'the expected number of records were received'
       outputRecords.size() == 2
-      outputRecords.get(0).getValue().getMap() ==  [
-              "1": 2.0
-      ]
+      outputRecords.get(0).getValue().getMap().get("1").getArtistId() == "1"
+      outputRecords.get(0).getValue().getMap().get("1").getArtistRatio() == 2
+      outputRecords.get(0).getValue().getMap().get("1").getName() == "Kyle"
 
-      outputRecords.get(1).getValue().getMap() ==  [
-              "1": 2.0,
-              "2": 2,
-      ]
+      outputRecords.get(0).getValue().getMap().get("1").getArtistId() == "1"
+      outputRecords.get(0).getValue().getMap().get("1").getArtistRatio() == 2
+      outputRecords.get(0).getValue().getMap().get("1").getName() == "Kyle"
+
+      outputRecords.get(1).getValue().getMap().get("2").getArtistId() == "2"
+      outputRecords.get(1).getValue().getMap().get("2").getArtistRatio() == 2
+      outputRecords.get(1).getValue().getMap().get("2").getName() == "Yuha"
 
       when:
       streamInputTopic.pipeInput("3", new Stream("3", "1", "1", "10"))
@@ -108,14 +111,21 @@ class ArtistTicketRatioSpec extends Specification {
 
       then:
       outputRecords.size() == 2
-      outputRecords.get(0).getValue().getMap() ==  [
-              "2": 2.0,
-              "1": 1,
-      ]
-      outputRecords.get(1).getValue().getMap() ==  [
-              "2": 1.0,
-              "1": 1,
-      ]
+      outputRecords.get(0).getValue().getMap().get("1").getArtistId() == "1"
+      outputRecords.get(0).getValue().getMap().get("1").getArtistRatio() == 1
+      outputRecords.get(0).getValue().getMap().get("1").getName() == "Kyle"
+
+      outputRecords.get(0).getValue().getMap().get("2").getArtistId() == "2"
+      outputRecords.get(0).getValue().getMap().get("2").getArtistRatio() == 2
+      outputRecords.get(0).getValue().getMap().get("2").getName() == "Yuha"
+
+      outputRecords.get(1).getValue().getMap().get("1").getArtistId() == "1"
+      outputRecords.get(1).getValue().getMap().get("1").getArtistRatio() == 1
+      outputRecords.get(1).getValue().getMap().get("1").getName() == "Kyle"
+
+      outputRecords.get(1).getValue().getMap().get("2").getArtistId() == "2"
+      outputRecords.get(1).getValue().getMap().get("2").getArtistRatio() == 1
+      outputRecords.get(1).getValue().getMap().get("2").getName() == "Yuha"
 
       when:
       artistInputTopic.pipeInput("3", new Artist("3", "Jerry", "Tumble"))
@@ -128,10 +138,16 @@ class ArtistTicketRatioSpec extends Specification {
 
       then:
       outputRecords.size() == 1
-      outputRecords.get(0).getValue().getMap() ==  [
-              "3": 2.0,
-              "2": 1.0,
-              "1": 1,
-      ]
+      outputRecords.get(0).getValue().getMap().get("1").getArtistId() == "1"
+      outputRecords.get(0).getValue().getMap().get("1").getArtistRatio() == 1
+      outputRecords.get(0).getValue().getMap().get("1").getName() == "Kyle"
+
+      outputRecords.get(0).getValue().getMap().get("2").getArtistId() == "2"
+      outputRecords.get(0).getValue().getMap().get("2").getArtistRatio() == 1
+      outputRecords.get(0).getValue().getMap().get("2").getName() == "Yuha"
+
+      outputRecords.get(0).getValue().getMap().get("3").getArtistId() == "3"
+      outputRecords.get(0).getValue().getMap().get("3").getArtistRatio() == 2
+      outputRecords.get(0).getValue().getMap().get("3").getName() == "Jerry"
     }
 }

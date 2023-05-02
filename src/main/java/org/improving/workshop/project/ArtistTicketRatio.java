@@ -72,7 +72,6 @@ public class ArtistTicketRatio {
                                 .withKeySerde(Serdes.String())
                                 .withValueSerde(Streams.SERDE_EVENT_JSON)
                 );
-       // eventsTable.toStream().peek((eventId, eventStatus) -> log.info("EventsTable '{}'", eventStatus));
 
         return builder
                 .stream(TOPIC_DATA_DEMO_TICKETS, Consumed.with(Serdes.String(), SERDE_TICKET_JSON))
@@ -81,7 +80,6 @@ public class ArtistTicketRatio {
                         eventsTable,
                         (eventId, ticket, event) -> new EventTicket(ticket, event)
                 )
-                //.peek((eventId, eventStatus) -> log.info("Joined '{}'", eventStatus))
                 .groupBy((k, v) -> v.event.artistid(), Grouped.with(Serdes.String(), EVENT_TICKET_JSON_SERDE))
                 .aggregate(
                         TicketsPerArtist2::new,
@@ -132,8 +130,7 @@ public class ArtistTicketRatio {
                                 .withValueSerde(ARTIST_RATIO_JSON_SERDE));
 
         artistRatioTable.toStream()
-                .join(artistsTable, (artistId, top5Ratio, artist) -> new ArtistNameRatio(top5Ratio, artist))
-                .peek((eventId, eventStatus) -> log.info("WOWOWOWOWOWO '{}'", eventStatus));
+                .join(artistsTable, (artistId, top5Ratio, artist) -> new ArtistNameRatio(top5Ratio, artist));
 
         artistRatioTable
                 .toStream()

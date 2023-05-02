@@ -22,7 +22,7 @@ class ArtistTicketRatioSpec extends Specification {
   TestInputTopic<String, Artist> artistInputTopic
 
   // outputs
-  TestOutputTopic<String, ArtistTicketRatio.ArtistNameRatio> outputTopic
+  TestOutputTopic<String, ArtistTicketRatio.ArtistTop5Ratio> outputTopic
 
 
     def 'setup'() {
@@ -74,6 +74,7 @@ class ArtistTicketRatioSpec extends Specification {
       given:
       String eventId = "1"
       String eventId2 = "2"
+      String eventId3 = "3"
       artistInputTopic.pipeInput("1", new Artist("1", "Kyle", "Rock"))
       artistInputTopic.pipeInput("2", new Artist("2", "Yuha", "Roll"))
       eventInputTopic.pipeInput(eventId, new Event(eventId, "1", "venue-1", 5, "today"))
@@ -84,13 +85,53 @@ class ArtistTicketRatioSpec extends Specification {
       ticketInputTopic.pipeInput("4", new Ticket("4", "2", eventId2, 2.33))
       streamInputTopic.pipeInput("1", new Stream("1", "1", "1", "10"))
       streamInputTopic.pipeInput("2", new Stream("2", "2", "2", "10"))
-      streamInputTopic.pipeInput("3", new Stream("3", "1", "1", "10"))
-      streamInputTopic.pipeInput("4", new Stream("4", "3", "2", "10"))
 
       when: 'reading the output records'
       def outputRecords = outputTopic.readRecordsToList()
 
       then: 'the expected number of records were received'
+      outputRecords.size() == 2
+      outputRecords.get(0).getValue().getMap() ==  [
+              "1": 2.0
+      ]
+
+      outputRecords.get(1).getValue().getMap() ==  [
+              "1": 2.0,
+              "2": 2,
+      ]
+
+      when:
+      streamInputTopic.pipeInput("3", new Stream("3", "1", "1", "10"))
+      streamInputTopic.pipeInput("4", new Stream("4", "3", "2", "10"))
+      outputRecords = outputTopic.readRecordsToList()
+
+
+      then:
+      outputRecords.size() == 2
+      outputRecords.get(0).getValue().getMap() ==  [
+              "2": 2.0,
+              "1": 1,
+      ]
+      outputRecords.get(1).getValue().getMap() ==  [
+              "2": 1.0,
+              "1": 1,
+      ]
+
+      when:
+      artistInputTopic.pipeInput("3", new Artist("3", "Jerry", "Tumble"))
+      eventInputTopic.pipeInput(eventId3, new Event(eventId3, "3", "venue-1", 5, "today"))
+      ticketInputTopic.pipeInput("5", new Ticket("5", "1", eventId3, 2.33))
+      ticketInputTopic.pipeInput("6", new Ticket("6", "1", eventId3, 2.33))
+      streamInputTopic.pipeInput("5", new Stream("5", "2", "3", "10"))
+      outputRecords = outputTopic.readRecordsToList()
+
+
+      then:
       outputRecords.size() == 1
-  }
+      outputRecords.get(0).getValue().getMap() ==  [
+              "3": 2.0,
+              "2": 1.0,
+              "1": 1,
+      ]
+    }
 }

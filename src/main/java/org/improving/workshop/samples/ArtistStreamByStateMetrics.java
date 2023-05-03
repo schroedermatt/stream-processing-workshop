@@ -62,7 +62,10 @@ public class ArtistStreamByStateMetrics {
                                 .withValueSerde(SERDE_CUSTOMER_JSON)
                 );
 
-        // count all artist streams
+        // **********                                                 **********
+        // ***** BQ1 - Which artist by name is streamed by the most CT residents
+        // **********                                                 **********
+
         builder
                 .stream(TOPIC_DATA_DEMO_STREAMS, Consumed.with(Serdes.String(), SERDE_STREAM_JSON))
                 .peek((streamId, stream) -> log.info("Stream Received: {}", stream))

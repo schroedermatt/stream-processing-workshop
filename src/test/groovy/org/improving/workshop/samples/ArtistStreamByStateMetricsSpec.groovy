@@ -29,10 +29,12 @@ class ArtistStreamByStateMetricsSpec extends Specification {
         StreamsBuilder streamsBuilder = new StreamsBuilder()
 
         // build the ArtistMetrics topology (by reference)
-        ArtistStreamByStateMetrics.configureTopology(streamsBuilder)
+            ArtistStreamByStateMetrics.configureTopology(streamsBuilder)
 
         // build the TopologyTestDriver
         driver = new TopologyTestDriver(streamsBuilder.build(), Streams.buildProperties())
+
+        System.out.println(streamsBuilder.build().describe())
 
         addressInputTopic = driver.createInputTopic(
                 Streams.TOPIC_DATA_DEMO_ADDRESSES,

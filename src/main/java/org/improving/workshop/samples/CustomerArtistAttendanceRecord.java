@@ -74,6 +74,10 @@ public class CustomerArtistAttendanceRecord {
                             .withValueSerde(Streams.SERDE_EVENT_JSON)
                 );
 
+        // **********                                                                      **********
+        // ***** BQ2 - Which customers are "superfans" of artist (attended events in multiple states)
+        // **********                                                                      **********
+
         builder
             .stream(TOPIC_DATA_DEMO_TICKETS, Consumed.with(Serdes.String(), SERDE_TICKET_JSON))
             .peek((ticketId, ticketRequest) -> log.info("Ticket Requested: {}", ticketRequest))

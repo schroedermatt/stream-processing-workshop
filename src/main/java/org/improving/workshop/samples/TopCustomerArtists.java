@@ -8,6 +8,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
+import org.improving.workshop.Streams;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
 import java.util.LinkedHashMap;
@@ -16,7 +17,8 @@ import java.util.Map;
 import static java.util.Collections.reverseOrder;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.kafka.streams.state.Stores.persistentKeyValueStore;
-import static org.improving.workshop.Streams.*;
+import static org.improving.workshop.Streams.SERDE_STREAM_JSON;
+import static org.improving.workshop.Streams.TOPIC_DATA_DEMO_STREAMS;
 
 @Slf4j
 public class TopCustomerArtists {
@@ -36,7 +38,7 @@ public class TopCustomerArtists {
         configureTopology(builder);
 
         // fire up the engines
-        startStreams(builder);
+        Streams.startStreams(builder);
     }
 
     static void configureTopology(final StreamsBuilder builder) {

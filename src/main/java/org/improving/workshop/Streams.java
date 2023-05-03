@@ -6,6 +6,7 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
+import org.improving.workshop.project.ArtistTicketRatio;
 import org.msse.demo.mockdata.customer.address.Address;
 import org.msse.demo.mockdata.customer.email.Email;
 import org.msse.demo.mockdata.customer.phone.Phone;
@@ -15,6 +16,7 @@ import org.msse.demo.mockdata.music.event.Event;
 import org.msse.demo.mockdata.music.stream.Stream;
 import org.msse.demo.mockdata.music.ticket.Ticket;
 import org.msse.demo.mockdata.music.venue.Venue;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
 import java.util.Properties;
@@ -54,6 +56,7 @@ public class Streams {
     public static final String TOPIC_DATA_DEMO_VENUES = "data-demo-venues";
     public static final JsonSerde<Venue> SERDE_VENUE_JSON = new JsonSerde<>(Venue.class);
 
+
     /**
      * Builds the base properties needed to start the Stream
      * @return Properties
@@ -76,7 +79,6 @@ public class Streams {
 //        streamsConfiguration.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='GDESIGB2BMXPMLKJ' password='fg6FyZeRuh2M3FTuz14I0lDaHsXCeC9A1pK3aVcQR/U5QqhUnQNXSPpTt5a3vj1O';");
 //        streamsConfiguration.put(StreamsConfig.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
 //        streamsConfiguration.put("sasl.mechanism", "PLAIN");
-
 
         // Specify default (de)serializers for record keys and for record values.
         streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());

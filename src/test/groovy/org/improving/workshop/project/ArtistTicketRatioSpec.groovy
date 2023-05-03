@@ -22,7 +22,7 @@ class ArtistTicketRatioSpec extends Specification {
   TestInputTopic<String, Artist> artistInputTopic
 
   // outputs
-  TestOutputTopic<String, ArtistTicketRatio.ArtistTop5Ratio> outputTopic
+  TestOutputTopic<String, ArtistTicketRatio.ArtistTopRatio> outputTopic
 
 
     def 'setup'() {

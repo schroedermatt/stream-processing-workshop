@@ -2,21 +2,20 @@ package org.improving.workshop.project;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
 import org.improving.workshop.Streams;
-import org.improving.workshop.samples.TopCustomerArtists;
 import org.msse.demo.mockdata.music.artist.Artist;
 import org.msse.demo.mockdata.music.event.Event;
 import org.msse.demo.mockdata.music.ticket.Ticket;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.io.Serializable;
+import java.util.*;
 
 import static java.util.Collections.reverseOrder;
 import static java.util.Collections.sort;
@@ -36,7 +35,7 @@ public class ArtistTicketRatio {
     public static final JsonSerde<ArtistMetrics> ARTIST_METRICS_JSON_SERDE = new JsonSerde<>(ArtistMetrics.class);
     public static final JsonSerde<EventTicket> EVENT_TICKET_JSON_SERDE = new JsonSerde<>(EventTicket.class);
     public static final JsonSerde<ArtistNameRatio> ARTIST_NAME_RATIO_JSON_SERDE = new JsonSerde<>(ArtistNameRatio.class);
-    public static final JsonSerde<ArtistTop5Ratio> ARTIST_TOP_5_RATIO_JSON_SERDE = new JsonSerde<>(ArtistTop5Ratio.class);
+    public static final JsonSerde<ArtistTopRatio> ARTIST_TOP_RATIO_JSON_SERDE = new JsonSerde<>(ArtistTopRatio.class);
 
     /**
       Inital Start
@@ -135,20 +134,27 @@ public class ArtistTicketRatio {
                 .selectKey((artistId, artistRatio) -> "X")
                 .groupByKey(Grouped.with(Serdes.String(), ARTIST_NAME_RATIO_JSON_SERDE))
                 .aggregate(
-                        ArtistTop5Ratio::new,
+                        ArtistTopRatio::new,
                         (artistId, artistRatio, ratioCounter) -> {
                             ratioCounter.determinePlacement(artistRatio);
                             return ratioCounter;
                         },
                         Materialized
-                                .<String, ArtistTop5Ratio>as(persistentKeyValueStore("artistTop5Ratio"))
+                                .<String, ArtistTopRatio>as(persistentKeyValueStore("artistTopRatio"))
                                 .withKeySerde(Serdes.String())
-                                .withValueSerde(ARTIST_TOP_5_RATIO_JSON_SERDE))
+                                .withValueSerde(ARTIST_TOP_RATIO_JSON_SERDE))
                 .toStream()
-                .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), ARTIST_TOP_5_RATIO_JSON_SERDE));
+                //.mapValues(artistTop5Ratio -> artistTop5Ratio.top(3))
+                .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), ARTIST_TOP_RATIO_JSON_SERDE));
     }
 
+    public static <K, V extends Comparable<? super V>> Comparator<Map.Entry<K, ArtistNameRatio>> comparingByValue() {
+        return (Comparator<Map.Entry<K, ArtistNameRatio>> & Serializable)
+                (c1, c2) -> Double.compare(c1.getValue().artistRatio, c2.getValue().artistRatio);
+    }
     @Data
+    @Getter
+    @Setter
     @AllArgsConstructor
     public static class ArtistNameRatio {
         private double artistRatio;
@@ -173,25 +179,18 @@ public class ArtistTicketRatio {
 
     @Data
     @AllArgsConstructor
-    public static class ArtistTop5Ratio {
+    public static class ArtistTopRatio {
         private LinkedHashMap<String, ArtistNameRatio> map;
-        public ArtistTop5Ratio() {
+        public ArtistTopRatio() {
             this.map = new LinkedHashMap<>();
         }
 
         public void determinePlacement(ArtistNameRatio newArtistRatio) {
            map.put(newArtistRatio.artistId, newArtistRatio);
             this.map = map.entrySet().stream()
-                    //.sorted(reverseOrder(Map.Entry.comparingByValue()))
+                    .sorted(reverseOrder(comparingByValue()))
                     .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
         }
-/**
-        public LinkedHashMap<String, Long> top(int limit) {
-            return map.entrySet().stream()
-                    .limit(limit)
-                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-        }
- **/
     }
 
     @Data

@@ -13,6 +13,9 @@ topic_names = [
     "data-demo-events",
     "data-demo-tickets",
     "data-demo-artists",
+    "artist-ticket-ratio",
+    "ct-favorite-artist-topic",
+    "superfan-topic",
 ]
 
 for topic in topic_names:

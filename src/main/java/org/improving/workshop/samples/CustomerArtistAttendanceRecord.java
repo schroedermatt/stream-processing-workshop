@@ -24,7 +24,7 @@ import static org.improving.workshop.Streams.*;
 @Slf4j
 public class CustomerArtistAttendanceRecord {
     // MUST BE PREFIXED WITH "kafka-workshop-"
-    public static final String OUTPUT_TOPIC = "kafka-workshop-superfans";
+    public static final String OUTPUT_TOPIC = "kafka-workshop-matt-superfans";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final JsonSerde<CustomerEvent> CUSTOMER_EVENT_JSON_SERDE = new JsonSerde<>(CustomerEvent.class);
@@ -144,10 +144,11 @@ public class CustomerArtistAttendanceRecord {
             )
 
             .toStream()
-            .peek(CustomerArtistAttendanceRecord::logPretty)
+            // .peek(CustomerArtistAttendanceRecord::logPretty)
             .mapValues(GlobalCustomerArtistAttendance::getSuperfanArtists)
             .filter((customerId, superfanArtists) -> superfanArtists.size() > 0)
             .mapValues((k, v) -> "'" + k +"' IS A SUPERFAN OF ARTISTS " + v)
+            .peek((k,v) -> log.info(v))
             .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
     }
 

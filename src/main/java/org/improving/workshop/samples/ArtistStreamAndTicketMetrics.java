@@ -26,10 +26,10 @@ import static org.improving.workshop.Streams.*;
 @Slf4j
 public class ArtistStreamAndTicketMetrics {
     // MUST BE PREFIXED WITH "kafka-workshop-"
-    public static final String OUTPUT_TOPIC_GLOBAL_METRICS = "kafka-workshop-artist-stream-and-ticket-metrics";
-    public static final String OUTPUT_TOPIC_TOP_GROSSING = "kafka-workshop-artist-top-grossing-event";
-    public static final String OUTPUT_TOPIC_5K_STREAMER = "kafka-workshop-artist-with-5k-streams-and-low-event-attendance";
-    public static final String OUTPUT_TOPIC_LOWEST_PERFORMING_VENUE = "kafka-workshop-artist-lowest-performing-venue";
+    public static final String OUTPUT_TOPIC_GLOBAL_METRICS = "kafka-workshop-matt-artist-stream-and-ticket-metrics";
+    public static final String OUTPUT_TOPIC_TOP_GROSSING = "kafka-workshop-matt-artist-top-grossing-event";
+    public static final String OUTPUT_TOPIC_5K_STREAMER = "kafka-workshop-matt-artist-with-5k-streams-and-low-event-attendance";
+    public static final String OUTPUT_TOPIC_LOWEST_PERFORMING_VENUE = "kafka-workshop-matt-artist-lowest-performing-venue";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final JsonSerde<ArtistMetrics> METRICS_JSON_SERDE = new JsonSerde<>(ArtistMetrics.class);
@@ -108,7 +108,7 @@ public class ArtistStreamAndTicketMetrics {
         // **********                                        **********
 
         artistTicketAndStreamingMetrics
-                .filter((artistId, artistMetrics) -> artistMetrics.totalStreamCount >= 5000 && artistMetrics.eventTicketToCapacityRatio() < 0.5)
+                .filter((artistId, artistMetrics) -> artistMetrics.totalStreamCount >= 500 && artistMetrics.eventTicketToCapacityRatio() < 0.5)
                 // join the metrics to the artist to fill in artist details
                 .join(
                         artistsTable,
@@ -127,8 +127,9 @@ public class ArtistStreamAndTicketMetrics {
         // **********                                                       **********
 
         artistTicketMetricsStream
-                // todo - join to venue?
+                // todo - join to artist/venue
                 .mapValues((ArtistMetrics::lowestPerformingVenueId))
+                .peek((k, v) -> log.info("Venue '{}' for artist '{}' is the worst.", v, k))
                 .to(OUTPUT_TOPIC_LOWEST_PERFORMING_VENUE, Produced.with(Serdes.String(), Serdes.String()));
 
         // **********                                                           **********
@@ -164,7 +165,7 @@ public class ArtistStreamAndTicketMetrics {
                 .toStream()
                 // we don't need the key since it's "STATIC_KEY", so null it out
                 .selectKey((k, v) -> null)
-                .peek(ArtistStreamAndTicketMetrics::logMetricsPretty)
+                // .peek(ArtistStreamAndTicketMetrics::logMetricsPretty)
                 .to(OUTPUT_TOPIC_GLOBAL_METRICS, Produced.valueSerde(GLOBAL_METRICS_JSON_SERDE));
     }
 

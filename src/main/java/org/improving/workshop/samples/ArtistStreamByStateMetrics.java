@@ -14,16 +14,21 @@ import org.msse.demo.mockdata.customer.profile.Customer;
 import org.msse.demo.mockdata.music.stream.Stream;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.apache.kafka.streams.state.Stores.persistentKeyValueStore;
 import static org.improving.workshop.Streams.*;
 
 @Slf4j
 public class ArtistStreamByStateMetrics {
+    private static final String TARGET_STATE = "CT";
+
     // MUST BE PREFIXED WITH "kafka-workshop-"
-    public static final String OUTPUT_TOPIC = "kafka-workshop-artist-stream-by-state-metrics";
+    public static final String OUTPUT_TOPIC = "kafka-workshop-matt-top-artist-in-" + TARGET_STATE;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final JsonSerde<CustomerStream> CUSTOMER_STREAM_JSON_SERDE = new JsonSerde<>(CustomerStream.class);
@@ -108,11 +113,12 @@ public class ArtistStreamByStateMetrics {
 
                         // ktable (materialized) configuration
                         Materialized
-                                .<String, ArtistStateMetrics>as(persistentKeyValueStore("global-metrics-table"))
+                                .<String, ArtistStateMetrics>as(persistentKeyValueStore("state-metrics-table"))
                                 .withKeySerde(Serdes.String())
                                 .withValueSerde(ARTIST_STATE_METRICS_JSON_SERDE)
                 )
                 .toStream()
+                .filter((k,v) -> k.equals(TARGET_STATE))
                 .peek(ArtistStreamByStateMetrics::logMetricsPretty)
                 .to(OUTPUT_TOPIC, Produced.valueSerde(ARTIST_STATE_METRICS_JSON_SERDE));
     }
@@ -152,6 +158,18 @@ public class ArtistStreamByStateMetrics {
                 // If artistId doesn't exist in the map, initialize it with a stream count of 1
                 this.metrics.put(artistId, 1L);
             }
+            
+            // sort the map from highest to lowest
+            this.metrics = this.metrics.entrySet()
+                    .stream()
+                    .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+                    .collect(
+                            Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue,
+                                    (oldValue, newValue) -> oldValue,
+                                    LinkedHashMap::new)
+                    );
         }
     }
 }

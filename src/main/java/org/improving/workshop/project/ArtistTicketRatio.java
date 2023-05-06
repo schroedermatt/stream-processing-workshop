@@ -28,7 +28,7 @@ import static org.improving.workshop.Streams.*;
  */
 @Slf4j
 public class ArtistTicketRatio {
-    public static final String OUTPUT_TOPIC = "kafka-artist-ticket-ratio";
+    public static final String OUTPUT_TOPIC = "artist-ticket-ratio";
     public static final JsonSerde<StreamsPerArtist2> STREAMS_PER_ARTIST2_JSON_SERDE = new JsonSerde<>(StreamsPerArtist2.class);
     public static final JsonSerde<TicketsPerArtist2> TICKETS_PER_ARTIST2_JSON_SERDE = new JsonSerde<>(TicketsPerArtist2.class);
     public static final JsonSerde<ArtistRatio> ARTIST_RATIO_JSON_SERDE = new JsonSerde<>(ArtistRatio.class);
@@ -37,19 +37,6 @@ public class ArtistTicketRatio {
     public static final JsonSerde<ArtistNameRatio> ARTIST_NAME_RATIO_JSON_SERDE = new JsonSerde<>(ArtistNameRatio.class);
     public static final JsonSerde<ArtistTopRatio> ARTIST_TOP_RATIO_JSON_SERDE = new JsonSerde<>(ArtistTopRatio.class);
 
-    /**
-      Inital Start
-      Kyle
-    */
-    public static void main(final String[] args) {
-        final StreamsBuilder builder = new StreamsBuilder();
-
-        // configure the processing topology
-        configureTopology(builder);
-
-        // fire up the engines
-        startStreams(builder);
-    }
 
     static KTable<String, Artist> getArtistTable(final StreamsBuilder builder) {
         return builder
@@ -152,6 +139,17 @@ public class ArtistTicketRatio {
         return (Comparator<Map.Entry<K, ArtistNameRatio>> & Serializable)
                 (c1, c2) -> Double.compare(c1.getValue().artistRatio, c2.getValue().artistRatio);
     }
+
+    public static void main(final String[] args) {
+        final StreamsBuilder builder = new StreamsBuilder();
+
+        // configure the processing topology
+        configureTopology(builder);
+
+        // fire up the engines
+        startStreams(builder);
+    }
+
     @Data
     @Getter
     @Setter

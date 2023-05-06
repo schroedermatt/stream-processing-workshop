@@ -13,8 +13,6 @@ import org.msse.demo.mockdata.music.artist.Artist;
 import org.msse.demo.mockdata.music.stream.Stream;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
-import java.util.Map;
-
 import static org.apache.kafka.streams.state.Stores.persistentKeyValueStore;
 import static org.improving.workshop.Streams.*;
 
@@ -85,21 +83,15 @@ public class ConnecticutFavoriteArtist {
 
     }
 
-    private String findMaxFromArtistStreams(ArtistStreamTotals artistStreams) {
-        String maxId = "";
-        long maxStreams = 0L;
+    public static void main(final String[] args) {
+        final StreamsBuilder builder = new StreamsBuilder();
 
-        for (String artistId : artistStreams.streamTotalMap.keySet()) {
-            long streamCount = artistStreams.streamTotalMap.get(artistId);
-            if (streamCount > maxStreams) {
-                maxId = artistId;
-                maxStreams = streamCount;
-            }
-        }
+        // configure the processing topology
+        configureTopology(builder);
 
-        return maxId;
+        // fire up the engines
+        startStreams(builder);
     }
-
 
     @Data
     @AllArgsConstructor
@@ -115,13 +107,6 @@ public class ConnecticutFavoriteArtist {
     public static class ArtistStreamsWithIsNewMaxFlag {
         ArtistStreams artistStreams;
         boolean isNewMax;
-    }
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class ArtistStreamTotals {
-        Map<String, Long> streamTotalMap;
     }
 
     @Data

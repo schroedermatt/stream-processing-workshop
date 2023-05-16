@@ -15,6 +15,7 @@ class TargetCustomerFilterSpec extends Specification {
 
     // inputs
     TestInputTopic<String, Customer> customerInputTopic
+    TestInputTopic<String, Customer> legacyCustomerInputTopic
 
     // outputs - customerid, customer
     TestOutputTopic<String, String> outputTopic
@@ -31,6 +32,12 @@ class TargetCustomerFilterSpec extends Specification {
 
         customerInputTopic = driver.createInputTopic(
                 Streams.TOPIC_DATA_DEMO_CUSTOMERS,
+                Serdes.String().serializer(),
+                Streams.SERDE_CUSTOMER_JSON.serializer()
+        )
+
+        legacyCustomerInputTopic = driver.createInputTopic(
+                TargetCustomerFilter.LEGACY_INPUT_TOPIC,
                 Serdes.String().serializer(),
                 Streams.SERDE_CUSTOMER_JSON.serializer()
         )
@@ -59,6 +66,36 @@ class TargetCustomerFilterSpec extends Specification {
         customerInputTopic.pipeKeyValueList([
                 new KeyValue<String, Customer>(cust1.id(), cust1),
                 new KeyValue<String, Customer>(cust2.id(), cust2),
+                new KeyValue<String, Customer>(cust3.id(), cust3),
+                new KeyValue<String, Customer>(cust4.id(), cust4),
+        ])
+
+        then: 'reading the output records'
+        def outputRecords = outputTopic.readRecordsToList()
+
+        then: 'two records came through - 1990 & 1999 birthdt customers'
+        outputRecords.size() == 2
+
+        and: 'they were customer 2 and 3'
+        outputRecords.first().key() == cust2.id()
+        outputRecords.last().key() == cust3.id()
+    }
+
+    def "BONUS - legacy customer topic is also captured"() {
+        given: 'a set of customers'
+        def cust1 = new Customer("123", "PREMIUM", "M", "John", "Steven", "James", "JSJ", "", "", "1989-01-20", "2022-01-02")
+        def cust2 = new Customer("456", "PREMIUM", "M", "Jane", "Jo", "James", "JJJ", "", "", "1990-01-20", "2022-01-02")
+        def cust3 = new Customer("567", "PREMIUM", "M", "George", "Mo", "James", "GMJ", "", "", "1999-01-20", "2022-01-02")
+        def cust4 = new Customer("678", "PREMIUM", "M", "Tommy", "Toe", "James", "TTJ", "", "", "2000-01-20", "2022-01-02")
+
+        when: 'piping the customers through the NEW topic'
+        customerInputTopic.pipeKeyValueList([
+                new KeyValue<String, Customer>(cust1.id(), cust1),
+                new KeyValue<String, Customer>(cust2.id(), cust2),
+        ])
+
+        and: 'piping customers through the LEGACY topic'
+        legacyCustomerInputTopic.pipeKeyValueList([
                 new KeyValue<String, Customer>(cust3.id(), cust3),
                 new KeyValue<String, Customer>(cust4.id(), cust4),
         ])

@@ -17,6 +17,7 @@ class AddressSortAndStringifySpec extends Specification {
 
     // outputs - addressid, address (string)
     TestOutputTopic<String, String> outputTopic
+    TestOutputTopic<String, String> mnOutputTopic
 
     def 'setup'() {
         // instantiate new builder
@@ -35,7 +36,13 @@ class AddressSortAndStringifySpec extends Specification {
         )
 
         outputTopic = driver.createOutputTopic(
-                AddressSortAndStringify.OUTPUT_TOPIC,
+                AddressSortAndStringify.DEFAULT_OUTPUT_TOPIC,
+                Serdes.String().deserializer(),
+                Serdes.String().deserializer()
+        )
+
+        mnOutputTopic = driver.createOutputTopic(
+                AddressSortAndStringify.MN_OUTPUT_TOPIC,
                 Serdes.String().deserializer(),
                 Serdes.String().deserializer()
         )
@@ -47,12 +54,12 @@ class AddressSortAndStringifySpec extends Specification {
         driver.close()
     }
 
-    def "address stringify"() {
+    def "WI address rekey and stringify"() {
         given: 'an address'
         def addressId = "address-123"
         def address = new Address(
                 addressId, "cust-678", "cd", "HOME", "111 1st St", "Apt 2",
-                "Minneapolis", "MN", "55419", "1234", "USA")
+                "Madison", "WI", "55555", "1234", "USA")
 
         when: 'piping the address through the stream'
         addressInputTopic.pipeInput(addressId, address)
@@ -67,6 +74,33 @@ class AddressSortAndStringifySpec extends Specification {
         outputRecords.first().key() == address.state()
 
         and: 'the value was stringified'
-        outputRecords.first().value() == "111 1st St, Apt 2, Minneapolis, MN 55419-1234 USA"
+        outputRecords.first().value() == "111 1st St, Apt 2, Madison, WI 55555-1234 USA"
+
+        and: 'zero mn records came through'
+        mnOutputTopic.isEmpty()
+    }
+
+    def "bonus - MN address split"() {
+        given: 'an address'
+        def addressId = "address-123"
+        def address = new Address(
+                addressId, "cust-123", "cd", "BUS", "222 1st St", "Suite 4",
+                "Minneapolis", "MN", "55419", "1234", "USA")
+
+        when: 'piping the address through the stream'
+        addressInputTopic.pipeInput(addressId, address)
+
+        then: 'zero records came through the default path'
+        outputTopic.isEmpty()
+
+        and: 'one record came through the MN branch'
+        def outputRecords = mnOutputTopic.readRecordsToList()
+        outputRecords.size() == 1
+
+        and: 'the key was changed to be the addresses state'
+        outputRecords.first().key() == address.state()
+
+        and: 'the value was stringified'
+        outputRecords.first().value() == "222 1st St, Suite 4, Minneapolis, MN 55419-1234 USA"
     }
 }

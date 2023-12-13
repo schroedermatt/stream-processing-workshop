@@ -52,6 +52,9 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:2.0.5'
     implementation 'org.slf4j:slf4j-simple:2.0.5'
 
+    implementation 'com.sun.mail:javax.mail:1.6.2'
+    implementation 'io.opentelemetry:opentelemetry-api:1.29.0'
+
     compileOnly 'org.projectlombok:lombok:1.18.26'
     annotationProcessor 'org.projectlombok:lombok:1.18.26'
 

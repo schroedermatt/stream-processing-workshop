@@ -25,7 +25,7 @@ You are going to explore the data, learn about Kafka Streams, and build Streams 
 
 The below ERD illustrates the data available in the workshop. Brief descriptions of each entity are below the diagram.
 
-<img src="./assets/utopia-erd.png" alt="erd" width="750"/>
+<img src="./assets/ERD.png" alt="erd" width="750"/>
 
 * Customer - the Utopia customer stores the core profile information and is related to the customer’s Email(s), Phone(s) and Address(es). The customer can also Stream artists and purchase Ticket(s) to Event(s).
 * Email - the email data has a unique identifier, a foreign key linking it to a customer, and the email address.

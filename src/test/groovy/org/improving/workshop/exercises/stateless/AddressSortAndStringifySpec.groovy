@@ -59,7 +59,7 @@ class AddressSortAndStringifySpec extends Specification {
         def addressId = "address-123"
         def address = new Address(
                 addressId, "cust-678", "cd", "HOME", "111 1st St", "Apt 2",
-                "Madison", "WI", "55555", "1234", "USA")
+                "Madison", "WI", "55555", "1234", "USA", 0L, 0L)
 
         when: 'piping the address through the stream'
         addressInputTopic.pipeInput(addressId, address)
@@ -85,7 +85,7 @@ class AddressSortAndStringifySpec extends Specification {
         def addressId = "address-123"
         def address = new Address(
                 addressId, "cust-123", "cd", "BUS", "222 1st St", "Suite 4",
-                "Minneapolis", "MN", "55419", "1234", "USA")
+                "Minneapolis", "MN", "55419", "1234", "USA", 0L, 0L)
 
         when: 'piping the address through the stream'
         addressInputTopic.pipeInput(addressId, address)
